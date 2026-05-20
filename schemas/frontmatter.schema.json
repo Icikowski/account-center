@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://git.sr.ht/~icikowski/account-center/blob/main/schemas/catalog.schema.json",
+  "title": "Knowledge base article frontmatter",
+  "description": "Frontmatter schema for knowledge base articles",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of the article"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the article"
+    },
+    "featured_image": {
+      "type": "string",
+      "format": "uri",
+      "description": "Path to the featured image for the article"
+    }
+  },
+  "required": ["title", "description"],
+  "additionalProperties": false
+}

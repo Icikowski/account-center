@@ -1,0 +1,100 @@
+package layouts
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/aspectratio"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/badge"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+)
+
+type TileRenderer[T any] func(item T) templ.Component
+
+templ TileGrid[T any](items []T, renderer TileRenderer[T]) {
+	<div class="grid grid-flow-row gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		for _, item := range items {
+			@renderer(item)
+		}
+	</div>
+}
+
+templ CatalogServiceTile(svc model.EffectiveService) {
+	<div class="h-auto max-w-full">
+		@card.Card() {
+			@card.Header() {
+				<div class="flex justify-between items-center">
+					<div class="max-w-full">
+						@card.Title(card.TitleProps{Class: "pbe-2"}) {
+							{ svc.Name }
+						}
+						@card.Description() {
+							@badge.Badge() {
+								{ i18n.T(ctx, i18n.UserRoleKey(svc.EffectiveRole)) }
+							}
+						}
+					</div>
+					if svc.Icon != nil {
+						@avatar.Avatar(avatar.Props{
+							Class: "rounded-lg",
+						}) {
+							@avatar.Image(avatar.ImageProps{
+								Src: svc.Icon.String(),
+								Alt: svc.Name,
+							})
+						}
+					}
+				</div>
+			}
+			@card.Content() {
+				@button.Button(button.Props{
+					Href:   svc.URL.String(),
+					Target: "_blank",
+					Class:  "w-full",
+				}) {
+					{ i18n.T(ctx, i18n.KeyCatalogGoToService) }
+				}
+			}
+		}
+	</div>
+}
+
+templ KnowledgeBaseArticleTile(article model.KnowledgeBaseListingArticle) {
+	<div class="h-auto max-w-full">
+		@card.Card() {
+			if article.FeaturedImageURL != "" {
+				<div class="overflow-hidden w-full rounded-t-lg">
+					@aspectratio.AspectRatio(aspectratio.Props{
+						ID:    "top-media-aspect",
+						Ratio: aspectratio.RatioVideo,
+						Class: "h-full w-full",
+					}) {
+						<img
+							src={ article.FeaturedImageURL }
+							alt={ article.Article.Title }
+							loading="lazy"
+							class="h-full w-full object-cover"
+						/>
+					}
+				</div>
+			}
+			@card.Header() {
+				@card.Title() {
+					{ article.Article.Title }
+				}
+			}
+			@card.Content() {
+				{ article.Article.Description }
+			}
+			@card.Footer() {
+				@button.Button(button.Props{
+					Href:  article.URL,
+					Class: "w-full",
+				}) {
+					{ i18n.T(ctx, i18n.KeyKnowledgeBaseGoToArticle) }
+				}
+			}
+		}
+	</div>
+}

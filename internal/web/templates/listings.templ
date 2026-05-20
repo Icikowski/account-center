@@ -1,0 +1,54 @@
+package templates
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
+)
+
+templ Catalog(services []model.EffectiveService) {
+	@layouts.Page(i18n.T(ctx, i18n.KeySectionCatalog), layouts.NavigationCatalog) {
+		if len(services) == 0 {
+			<div class="w-full">
+				@card.Card() {
+					@card.Header() {
+						@card.Title() {
+							{ i18n.T(ctx, i18n.KeyCatalogNoServices) }
+						}
+					}
+					@card.Content() {
+						<p>
+							{ i18n.T(ctx, i18n.KeyCatalogNoServicesMessage) }
+						</p>
+					}
+				}
+			</div>
+		} else {
+			@layouts.TileGrid(services, layouts.CatalogServiceTile)
+		}
+	}
+}
+
+templ KnowledgeBase(articles []model.KnowledgeBaseListingArticle) {
+	@layouts.Page(i18n.T(ctx, i18n.KeySectionKnowledgeBase), layouts.NavigationKnowledgeBase) {
+		if len(articles) == 0 {
+			<div class="w-full">
+				@card.Card() {
+					@card.Header() {
+						@card.Title() {
+							{ i18n.T(ctx, i18n.KeyKnowledgeBaseNoArticles) }
+						}
+					}
+					@card.Content() {
+						<p>
+							{ i18n.T(ctx, i18n.KeyKnowledgeBaseNoArticlesMessage) }
+						</p>
+					}
+				}
+			</div>
+		} else {
+			@layouts.TileGrid(articles, layouts.KnowledgeBaseArticleTile)
+		}
+	}
+}

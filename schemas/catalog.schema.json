@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://git.sr.ht/~icikowski/account-center/blob/main/schemas/catalog.schema.json",
+  "title": "Services catalog",
+  "description": "Configuration for the Account Center services catalog",
+  "$defs": {
+    "UserRole": {
+      "type": "string",
+      "description": "User role for the given service",
+      "enum": ["superuser", "system_administrator", "administrator", "redactor", "editor", "viewer", "user", "guest"]
+    },
+    "RoleMapping": {
+      "type": "object",
+      "description": "Mapping of group names to user roles",
+      "additionalProperties": {
+        "$ref": "#/$defs/UserRole"
+      }
+    },
+    "Service": {
+      "type": "object",
+      "description": "Service configuration",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the service"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL of the service"
+        },
+        "icon": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the service icon"
+        },
+        "roles": {
+          "description": "Mapping of group names to user roles; if empty, then all users are assumed to have access to given service",
+          "$ref": "#/$defs/RoleMapping"
+        }
+      },
+      "required": ["name", "url"],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "global_access": {
+      "description": "Mapping of group names to user roles; if user belongs to a group listed here, then they have access to all services with the given role",
+      "$ref": "#/$defs/RoleMapping"
+    },
+    "services": {
+      "type": "array",
+      "description": "List of services in the catalog",
+      "items": {
+        "$ref": "#/$defs/Service"
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": ["services"],
+  "additionalProperties": false
+}

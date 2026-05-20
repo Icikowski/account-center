@@ -1,0 +1,57 @@
+package templates
+
+import "git.sr.ht/~icikowski/account-center/internal/i18n"
+import "git.sr.ht/~icikowski/account-center/internal/web/layouts"
+import "git.sr.ht/~icikowski/account-center/internal/web/components/icon"
+import "git.sr.ht/~icikowski/account-center/internal/web/components/card"
+import "git.sr.ht/~icikowski/account-center/internal/web/components/button"
+
+templ ErrorNotFound() {
+	@errorBase(i18n.KeyErrorNotFound, i18n.KeyErrorNotFoundMessage, icon.FileExclamationPoint)
+}
+
+templ ErrorMethodNotAllowed() {
+	@errorBase(i18n.KeyErrorMethodNotAllowed, i18n.KeyErrorMethodNotAllowedMessage, icon.MonitorStop)
+}
+
+templ errorBase(nameKey, messageKey i18n.Key, iconFn func(...icon.Props) templ.Component) {
+	@layouts.Page(i18n.T(ctx, nameKey), nil) {
+		<div class="w-full">
+			@card.Card() {
+				@card.Header() {
+					<div class="flex justify-between items-center">
+						<div class="max-w-full">
+							@card.Title() {
+								{ i18n.T(ctx, nameKey) }
+							}
+						</div>
+						@iconFn(icon.Props{Class: "size-12 text-red-500"})
+					</div>
+				}
+				@card.Content() {
+					{ i18n.T(ctx, messageKey) }
+				}
+				@card.Footer() {
+					@button.Button(button.Props{
+						Class: "w-full",
+						Href:  "/",
+					}) {
+						{ i18n.T(ctx, i18n.KeyErrorGoHome) }
+					}
+				}
+			}
+		</div>
+		// <div class="flex flex-col items-center justify-center gap-4 py-16">
+		// 	@iconFn(icon.Props{Class: "size-12 text-red-500"})
+		// 	<div class="text-lg font-semibold">
+		// 		{ i18n.T(ctx, nameKey) }
+		// 	</div>
+		// 	<div class="text-sm text-gray-500">
+		// 		{ i18n.T(ctx, messageKey) }
+		// 	</div>
+		// 	<a href="/" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+		// 		{ i18n.T(ctx, i18n.KeyErrorGoHome) }
+		// 	</a>
+		// </div>
+	}
+}

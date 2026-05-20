@@ -1,0 +1,7 @@
+{
+  "componentsDir": "internal/web/components",
+  "utilsDir": "internal/web/utils",
+  "moduleName": "git.sr.ht/~icikowski/account-center",
+  "jsDir": "internal/web/assets/js",
+  "jsPublicPath": "/assets/js"
+}

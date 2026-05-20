@@ -1,0 +1,112 @@
+// Package main provides the account-center command.
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"git.sr.ht/~icikowski/account-center/internal/auth"
+	"git.sr.ht/~icikowski/account-center/internal/catalog"
+	"git.sr.ht/~icikowski/account-center/internal/config"
+	"git.sr.ht/~icikowski/account-center/internal/evaluator"
+	"git.sr.ht/~icikowski/account-center/internal/knowledgebase"
+	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
+	"git.sr.ht/~icikowski/account-center/internal/web"
+)
+
+func main() {
+	log := xlog.InitialLogger()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load configuration")
+	}
+
+	log = xlog.New(cfg.Log.Level, cfg.Log.Pretty)
+
+	trustedProxies, err := auth.NewTrustedProxies(cfg.Server.TrustedProxyCIDRs)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to parse trusted proxies")
+	}
+
+	catalogProvider, err := catalog.NewWatcher(ctx, cfg.Catalog.Path, cfg.Catalog.ReloadDebounce, log)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create catalog watcher")
+	}
+
+	var knowledgeBaseProvider model.Reloader[model.KnowledgeBase]
+	if cfg.KnowledgeBase.Enabled {
+		knowledgeBaseProvider, err = knowledgebase.NewWatcher(
+			ctx,
+			cfg.KnowledgeBase.Path,
+			cfg.KnowledgeBase.ReloadDebounce,
+			log,
+		)
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to create knowledge base watcher")
+		}
+	}
+
+	authStore := auth.NewMemoryStore(ctx)
+	if cfg.Redis.Enabled {
+		authStore = auth.NewRedisStore(cfg.Redis.Client(), cfg.Redis.KeyPrefix)
+	}
+
+	authService, err := auth.NewService(
+		ctx,
+		cfg.OIDC.ProviderURL, cfg.OIDC.ClientID, cfg.OIDC.ClientSecret,
+		cfg.Instance.BaseURL,
+		cfg.OIDC.RefreshBefore, cfg.Auth.SessionTTL, cfg.Auth.LoginStateTTL,
+		authStore,
+		auth.WithTrustedProxies(trustedProxies),
+	)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create auth service")
+	}
+
+	evaluator := evaluator.New(log)
+
+	webHandler := web.NewHandler(
+		cfg.Instance.Name,
+		catalogProvider,
+		knowledgeBaseProvider,
+		authService,
+		cfg.Auth.SessionCookieName,
+		trustedProxies,
+		evaluator,
+	)
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", cfg.Server.Address, cfg.Server.Port),
+		Handler: webHandler,
+	}
+
+	go func() {
+		sctx := context.WithoutCancel(ctx)
+
+		<-ctx.Done()
+		log.Info().Str("cause", context.Cause(ctx).Error()).Msg("shutting down")
+
+		sctx, cancel := context.WithTimeout(sctx, 5*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(sctx); err != nil {
+			log.Error().Err(err).Msg("failed to shutdown server")
+		}
+	}()
+
+	log.Info().Msg("started application server")
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatal().Err(err).Msg("server error")
+	}
+	log.Info().Msg("stopped application server")
+}

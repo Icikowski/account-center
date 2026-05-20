@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+vars:
+  TAILWIND_CMD:
+    sh: command -v tailwindcss >/dev/null 2>&1 && echo "tailwindcss" || echo "npx tailwindcss@latest"
+tasks:
+  lint:
+    cmd: golangci-lint run --fix ./...
+  fmt:
+    cmds:
+      - golangci-lint fmt ./...
+      - go run github.com/shoenig/go-modtool@latest -w fmt go.mod
+  generate:
+    cmds:
+      - go generate ./...
+      - go tool templ generate
+      - "{{.TAILWIND_CMD}} -i ./internal/web/assets/sources/input.css -o ./internal/web/assets/css/style.css"
+  build:
+    cmd: go build -o ./bin/account-center ./cmd/account-center
+  build-static:
+    env:
+      CGO_ENABLED: "0"
+    cmd: go build -o ./bin/account-center -tags netgo -ldflags '-s -w -extldflags "-static"' ./cmd/account-center
+  run:
+    cmd: go run ./cmd/account-center
+  test:
+    cmd: go test -race -v ./...
+  templ:
+    cmd: |
+      go tool templ generate \
+        --watch \
+        --proxy="http://localhost:8080" \
+        --cmd="go run ./cmd/account-center" \
+        --open-browser=false
+  tailwind:
+    cmd: |
+      {{.TAILWIND_CMD}} \
+        -i ./internal/web/assets/sources/input.css \
+        -o ./internal/web/assets/css/style.css \
+        --watch
+  dev:
+    cmd: task --parallel tailwind templ

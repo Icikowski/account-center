@@ -1,0 +1,47 @@
+package templates
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
+	"html/template"
+)
+
+templ KnowledgeBaseArticle(article model.KnowledgeBaseArticle, body template.HTML) {
+	@layouts.Page(article.Title, layouts.NavigationKnowledgeBaseArticle(article)) {
+		<div class="h-auto max-w-full">
+			@card.Card() {
+				@card.Header() {
+					@card.Title() {
+						{ article.Title }
+					}
+				}
+				@card.Content() {
+					<article class="max-w-full prose dark:prose-invert">
+						@templ.Raw(body)
+					</article>
+				}
+			}
+		</div>
+	}
+}
+
+templ KnowledgeBaseDisabled() {
+	@layouts.Page(i18n.T(ctx, i18n.KeySectionKnowledgeBase), layouts.NavigationKnowledgeBase) {
+		<div class="h-auto max-w-full">
+			@card.Card() {
+				@card.Header() {
+					@card.Title() {
+						{ i18n.T(ctx, i18n.KeyKnowledgeBaseDisabled) }
+					}
+				}
+				@card.Content() {
+					<p>
+						{ i18n.T(ctx, i18n.KeyKnowledgeBaseDisabledMessage) }
+					</p>
+				}
+			}
+		</div>
+	}
+}

@@ -1,0 +1,82 @@
+- id: code
+  other: pl
+- id: general.account_center
+  other: Centrum kont
+- id: general.description
+  other: Zcentralizowana platforma do zarządzania Twoim kontem, usługami i zasobami
+- id: general.language
+  other: Język
+- id: general.theme
+  other: Motyw
+- id: general.system
+  other: Systemowy
+- id: welcome.message
+  other: Witamy w Centrum kont! Zaloguj się, aby uzyskać dostęp do swoich usług i zasobów.
+- id: auth.login
+  other: Zaloguj się
+- id: auth.logout
+  other: Wyloguj się
+- id: auth.refresh
+  other: Odśwież dane
+- id: auth.unknown_user
+  other: Nieznany użytkownik
+- id: auth.no_email
+  other: Brak adresu e-mail
+- id: language.english
+  other: Angielski
+- id: language.polish
+  other: Polski
+- id: theme.light
+  other: Jasny
+- id: theme.dark
+  other: Ciemny
+- id: label.resources
+  other: Zasoby
+- id: section.catalog
+  other: Katalog usług
+- id: section.knowledge_base
+  other: Baza wiedzy
+- id: catalog.go_to_service
+  other: Przejdź do usługi
+- id: catalog.no_services.title
+  other: Brak przypisanych usług
+- id: catalog.no_services.description
+  other: Wygląda na to, że nie masz jeszcze żadnych usług przypisanych do swojego konta.
+- id: knowledge_base.go_to_article
+  other: Przejdź do artykułu
+- id: knowledge_base.no_articles.title
+  other: Brak dostępnych artykułów
+- id: knowledge_base.no_articles.description
+  other: Wygląda na to, że nie ma jeszcze żadnych artykułów w bazie wiedzy dostępnych dla Ciebie.
+- id: knowledge_base.disabled.title
+  other: Bazy wiedzy jest wyłączona
+- id: knowledge_base.disabled.description
+  other: Baza wiedzy nie została włączona przez administratora. Jeśli uważasz, że to błąd, skontaktuj się z administratorem systemu.
+- id: error.go_home
+  other: Przejdź do strony głównej
+- id: error.not_found
+  other: Nie znaleziono
+- id: error.not_found.description
+  other: Strona, której szukasz, nie istnieje. Mogła zostać usunięta, zmienić nazwę lub jest tymczasowo niedostępna.
+- id: error.method_not_allowed
+  other: Metoda niedozwolona
+- id: error.method_not_allowed.description
+  other: Metoda określona w żądaniu nie jest dozwolona dla zasobu zidentyfikowanego przez URI żądania. Sprawdź dokumentację i spróbuj ponownie.
+- id: role.superuser
+  other: Superużytkownik
+- id: role.system_administrator
+  other: Administrator systemu
+- id: role.administrator
+  other: Administrator
+- id: role.redactor
+  other: Redaktor
+- id: role.editor
+  other: Edytor
+- id: role.viewer
+  other: Przeglądający
+- id: role.user
+  other: Użytkownik
+- id: role.guest
+  other: Gość
+- id: role.general_access
+  other: Ogólnodostępne

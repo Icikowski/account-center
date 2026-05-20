@@ -1,0 +1,313 @@
+package layouts
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/breadcrumb"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdown"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
+	"strings"
+)
+
+templ Page(title string, nav *NavigationItem) {
+	{{ bd := baseDataFromContext(ctx) }}
+	<!DOCTYPE html>
+	<html class="h-full">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>
+				if title != "" {
+					{ title } |
+				}
+				if bd.InstanceName != "" {
+					{ bd.InstanceName } -
+				}
+				{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+			</title>
+			<script src="/assets/js/page.js"></script>
+			<link rel="stylesheet" href="/assets/css/style.css"/>
+			<link rel="icon" href="/assets/img/favicon.png" type="image/png"/>
+			<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"/>
+		</head>
+		<body class="h-full">
+			@sidebarWrapper(nav, bd) {
+				{ children... }
+			}
+		</body>
+	</html>
+}
+
+templ sidebarWrapper(nav *NavigationItem, bd BaseData) {
+	@sidebar.Layout() {
+		@sidebar.Sidebar(sidebar.Props{
+			Collapsible: sidebar.CollapsibleIcon,
+			Variant:     sidebar.VariantFloating,
+			Collapsed:   xmiddleware.IsSidebarCollapsed(ctx),
+		}) {
+			@sidebarContent(nav, bd)
+		}
+		@sidebar.Inset(sidebar.InsetProps{Class: "min-w-0"}) {
+			<div class="flex h-full flex-col pbe-2 px-6">
+				<div class="flex h-14 items-center gap-4">
+					@sidebar.Trigger()
+					@sidebarBreadcrumbs(nav)
+				</div>
+				{ children... }
+			</div>
+		}
+	}
+	@sidebar.Script()
+}
+
+templ sidebarContent(nav *NavigationItem, bd BaseData) {
+	@sidebar.Header() {
+		@sidebar.Menu() {
+			@sidebar.MenuItem() {
+				@sidebar.MenuButton(sidebar.MenuButtonProps{
+					Size: sidebar.MenuButtonSizeLg,
+				}) {
+					@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
+						@avatar.Image(avatar.ImageProps{
+							Src: "/assets/img/logo.png",
+						})
+					}
+					<div class="grid flex-1 text-left text-sm leading-tight">
+						if bd.InstanceName != "" {
+							<span class="truncate font-semibold">{ bd.InstanceName }</span>
+							<span class="truncate text-xs">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+						} else {
+							<span class="truncate font-semibold">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+						}
+					</div>
+				}
+			}
+		}
+	}
+	@sidebar.Content() {
+		@sidebar.Group() {
+			@sidebar.GroupLabel() {
+				{ i18n.T(ctx, i18n.KeyLabelResources) }
+			}
+			@sidebar.Menu() {
+				@sidebar.MenuItem() {
+					@sidebar.MenuButton(sidebar.MenuButtonProps{
+						Href:     NavigationCatalog.URL,
+						Tooltip:  i18n.T(ctx, NavigationCatalog.Key),
+						IsActive: NavigationCatalog.IsActive(nav),
+					}) {
+						@icon.LayoutDashboard(icon.Props{Class: "size-4"})
+						<span>{ i18n.T(ctx, NavigationCatalog.Key) }</span>
+						if bd.Counters.Services > 0 {
+							@sidebar.MenuBadge() {
+								{ bd.Counters.Services }
+							}
+						}
+					}
+				}
+				@sidebar.MenuItem() {
+					@sidebar.MenuButton(sidebar.MenuButtonProps{
+						Href:     NavigationKnowledgeBase.URL,
+						Tooltip:  i18n.T(ctx, NavigationKnowledgeBase.Key),
+						IsActive: NavigationKnowledgeBase.IsActive(nav),
+					}) {
+						@icon.NotebookTabs(icon.Props{Class: "size-4"})
+						<span>{ i18n.T(ctx, NavigationKnowledgeBase.Key) }</span>
+						if bd.Counters.KnowledgeBaseArticles > 0 {
+							@sidebar.MenuBadge() {
+								{ bd.Counters.KnowledgeBaseArticles }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	{{
+		var (
+			userFullName = i18n.T(ctx, i18n.KeyAuthUnknownUser)
+			userEmail    = i18n.T(ctx, i18n.KeyAuthNoEmail)
+		)
+
+		if bd.User != nil {
+			if strings.TrimSpace(bd.User.FullName) != "" {
+				userFullName = bd.User.FullName
+			}
+			if strings.TrimSpace(bd.User.Email) != "" {
+				userEmail = bd.User.Email
+			}
+		}
+	}}
+	@sidebar.Footer() {
+		@sidebar.Menu() {
+			@sidebar.MenuItem() {
+				@dropdown.Dropdown() {
+					@dropdown.Trigger() {
+						@sidebar.MenuButton(sidebar.MenuButtonProps{
+							Size: sidebar.MenuButtonSizeLg,
+						}) {
+							@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
+								@avatar.Image(avatar.ImageProps{
+									Src: bd.User.GravatarURL(),
+								})
+							}
+							<div class="grid flex-1 text-left text-sm leading-tight">
+								<span class="truncate font-medium">{ userFullName }</span>
+								<span class="truncate text-xs">{ userEmail }</span>
+							</div>
+							@icon.ChevronsUpDown(icon.Props{Class: "ml-auto size-4"})
+						}
+					}
+					@dropdown.Content(dropdown.ContentProps{
+						Class:     "w-56",
+						Placement: dropdown.PlacementTopStart,
+					}) {
+						@dropdown.Label() {
+							{ userFullName }
+						}
+						@dropdown.Separator()
+						@dropdown.Sub() {
+							@dropdown.SubTrigger() {
+								<span class="flex items-center">
+									@icon.SwatchBook(icon.Props{Class: "size-4 mr-2"})
+									{ i18n.T(ctx, i18n.KeyGeneralTheme) }
+								</span>
+							}
+							@dropdown.SubContent() {
+								@dropdown.Item(dropdown.ItemProps{
+									Attributes: templ.Attributes{
+										"onClick": "setTheme('light')",
+									},
+								}) {
+									<span class="flex items-center">
+										@icon.Sun(icon.Props{Class: "size-4 mr-2"})
+										{ i18n.T(ctx, i18n.KeyThemeLight) }
+									</span>
+								}
+								@dropdown.Item(dropdown.ItemProps{
+									Attributes: templ.Attributes{
+										"onclick": "setTheme('dark')",
+									},
+								}) {
+									<span class="flex items-center">
+										@icon.Moon(icon.Props{Class: "size-4 mr-2"})
+										{ i18n.T(ctx, i18n.KeyThemeDark) }
+									</span>
+								}
+								@dropdown.Item(dropdown.ItemProps{
+									Attributes: templ.Attributes{
+										"onclick": "setTheme('auto')",
+									},
+								}) {
+									<span class="flex items-center">
+										@icon.SunMoon(icon.Props{Class: "size-4 mr-2"})
+										{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+									</span>
+								}
+							}
+						}
+						@dropdown.Sub() {
+							@dropdown.SubTrigger() {
+								<span class="flex items-center">
+									@icon.Globe(icon.Props{Class: "size-4 mr-2"})
+									{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
+								</span>
+							}
+							@dropdown.SubContent() {
+								for _, lang := range i18n.AvailableLanguages() {
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": "setLanguage('" + lang.Code + "')",
+										},
+									}) {
+										<span class="flex items-center">
+											{ i18n.T(ctx, lang.Name) }
+										</span>
+									}
+								}
+								@dropdown.Separator()
+								@dropdown.Item(dropdown.ItemProps{
+									Attributes: templ.Attributes{
+										"onclick": "setLanguage('')",
+									},
+								}) {
+									<span class="flex items-center">
+										{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+									</span>
+								}
+							}
+						}
+						@dropdown.Separator()
+						if bd.User != nil {
+							@dropdown.Item(dropdown.ItemProps{
+								Href: "/refresh",
+							}) {
+								<span class="flex items-center">
+									@icon.CloudSync(icon.Props{Class: "size-4 mr-2"})
+									{  i18n.T(ctx, i18n.KeyAuthRefresh) }
+								</span>
+							}
+							@dropdown.Item(dropdown.ItemProps{
+								Href: "/logout",
+							}) {
+								<span class="flex items-center">
+									@icon.LogOut(icon.Props{Class: "size-4 mr-2"})
+									{  i18n.T(ctx, i18n.KeyAuthLogout) }
+								</span>
+							}
+						} else {
+							@dropdown.Item(dropdown.ItemProps{
+								Href: "/login",
+							}) {
+								<span class="flex items-center">
+									@icon.LogIn(icon.Props{Class: "size-4 mr-2"})
+									{  i18n.T(ctx, i18n.KeyAuthLogin) }
+								</span>
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+templ sidebarBreadcrumbs(nav *NavigationItem) {
+	@breadcrumb.Breadcrumb() {
+		@breadcrumb.List() {
+			@breadcrumb.Item() {
+				@breadcrumb.Link(breadcrumb.LinkProps{
+					Href: "/",
+				}) {
+					@icon.House(icon.Props{Class: "size-4"})
+				}
+			}
+			if nav != nil {
+				{{
+					var path []*NavigationItem
+					if nav.Parent != nil {
+						path = nav.Parent.Breadcrumbs()
+					}
+				}}
+				for _, item := range path {
+					@breadcrumb.Item() {
+						@breadcrumb.Separator()
+						@breadcrumb.Link(breadcrumb.LinkProps{
+							Href: item.FullURL(),
+						}) {
+							{ i18n.T(ctx, item.Key) }
+						}
+					}
+				}
+				@breadcrumb.Item() {
+					@breadcrumb.Separator()
+					@breadcrumb.Page(breadcrumb.ItemProps{Current: true}) {
+						{ i18n.T(ctx, nav.Key) }
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,60 @@
+image: fedora/latest
+packages:
+  - podman
+sources:
+  - https://git.sr.ht/~icikowski/account-center
+submitter:
+  git.sr.ht:
+    enabled: true
+    allow-refs:
+      - refs/heads/main
+      - "refs/tags/*"
+secrets:
+  - 65d4bf79-0440-47b0-8462-0dec7b6880bd # ~/.token_dockerhub
+  - faa31eef-4d36-41ea-b68b-08167fb89e5f # ~/.token_github
+tasks:
+  - build-and-push: |
+      cd account-center
+
+      case "$GIT_REF" in
+      refs/heads/main)
+        image_tag=dev
+        latest_tag=
+        ;;
+      refs/tags/*)
+        image_tag="${GIT_REF#refs/tags/}"
+        latest_tag=latest
+        ;;
+      *)
+        echo "unsupported ref: $GIT_REF" >&2
+        exit 1
+        ;;
+      esac
+
+      dockerhub_token_file="$HOME/.token_dockerhub"
+      github_token_file="$HOME/.token_github"
+
+      set +x
+      test -r "$dockerhub_token_file" || { echo "missing $dockerhub_token_file" >&2; exit 1; }
+      test -r "$github_token_file" || { echo "missing $github_token_file" >&2; exit 1; }
+      podman login --username icikowski --password-stdin docker.io < "$dockerhub_token_file" >/dev/null
+      podman login --username Icikowski --password-stdin ghcr.io < "$github_token_file" >/dev/null
+      set -x
+
+      local_image="localhost/account-center:${image_tag}"
+      podman build --file Containerfile --tag "$local_image" .
+
+      for repository in \
+        icikowski/account-center \
+        ghcr.io/icikowski/account-center
+      do
+        remote_image="${repository}:${image_tag}"
+        podman tag "$local_image" "$remote_image"
+        podman push "$remote_image"
+
+        if test -n "$latest_tag"; then
+          latest_image="${repository}:${latest_tag}"
+          podman tag "$local_image" "$latest_image"
+          podman push "$latest_image"
+        fi
+      done

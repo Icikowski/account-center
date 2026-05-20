@@ -1,0 +1,36 @@
+package templates
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
+)
+
+templ Login() {
+	@layouts.Page("", nil) {
+		<div class="w-full">
+			@card.Card() {
+				@card.Header() {
+					@card.Title() {
+						{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+					}
+				}
+				@card.Content() {
+					<p>
+						{ i18n.T(ctx, i18n.KeyWelcomeMessage) }
+					</p>
+				}
+				@card.Footer() {
+					@button.Button(button.Props{
+						Class: "w-full",
+						Size:  button.SizeLg,
+						Href:  "/login",
+					}) {
+						{ i18n.T(ctx, i18n.KeyAuthLogin) }
+					}
+				}
+			}
+		</div>
+	}
+}

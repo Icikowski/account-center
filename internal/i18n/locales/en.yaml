@@ -1,0 +1,82 @@
+- id: code
+  other: en
+- id: general.account_center
+  other: Account Center
+- id: general.description
+  other: Centralized platform for managing your account, services, and resources
+- id: general.language
+  other: Language
+- id: general.theme
+  other: Theme
+- id: general.system
+  other: System
+- id: welcome.message
+  other: Welcome to Account Center! Please log in to access your services and resources.
+- id: auth.login
+  other: Login
+- id: auth.logout
+  other: Logout
+- id: auth.refresh
+  other: Refresh data
+- id: auth.unknown_user
+  other: Unknown user
+- id: auth.no_email
+  other: No e-mail address
+- id: language.english
+  other: English
+- id: language.polish
+  other: Polish
+- id: theme.light
+  other: Light
+- id: theme.dark
+  other: Dark
+- id: label.resources
+  other: Resources
+- id: section.catalog
+  other: Services catalog
+- id: section.knowledge_base
+  other: Knowledge base
+- id: catalog.go_to_service
+  other: Go to service
+- id: catalog.no_services.title
+  other: No services assigned
+- id: catalog.no_services.description
+  other: It looks like you don't have any services assigned to your account yet.
+- id: knowledge_base.go_to_article
+  other: Go to article
+- id: knowledge_base.no_articles.title
+  other: No articles available
+- id: knowledge_base.no_articles.description
+  other: It looks like there are no articles in the knowledge base available for you yet.
+- id: knowledge_base.disabled.title
+  other: Knowledge base feature is disabled
+- id: knowledge_base.disabled.description
+  other: Knowledge base feature was not enabled by the administrator. If you think this is a mistake, please contact your system administrator.
+- id: error.go_home
+  other: Go to homepage
+- id: error.not_found
+  other: Not found
+- id: error.not_found.description
+  other: The page you are looking for does not exist. It might have been removed, had its name changed, or is temporarily unavailable.
+- id: error.method_not_allowed
+  other: Method not allowed
+- id: error.method_not_allowed.description
+  other: The method specified in the request is not allowed for the resource identified by the request URI. Please check the documentation and try again.
+- id: role.superuser
+  other: Superuser
+- id: role.system_administrator
+  other: System administrator
+- id: role.administrator
+  other: Administrator
+- id: role.redactor
+  other: Redactor
+- id: role.editor
+  other: Editor
+- id: role.viewer
+  other: Viewer
+- id: role.user
+  other: User
+- id: role.guest
+  other: Guest
+- id: role.general_access
+  other: General access

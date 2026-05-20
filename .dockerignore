@@ -1,0 +1,15 @@
+.env
+.env.*
+.env.example
+
+.envrc
+.envrc.*
+
+local
+bin
+docs
+
+LICENSE
+README.md
+
+**/*_templ.go

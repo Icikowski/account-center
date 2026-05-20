@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+
+!.envrc
+.envrc.*
+
+local
+bin
+
+**/*_templ.go
