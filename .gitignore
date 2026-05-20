@@ -9,3 +9,4 @@ local
 bin
 
 **/*_templ.go
+internal/web/assets/css/style.css
