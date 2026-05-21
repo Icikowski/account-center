@@ -19,6 +19,11 @@ const (
 
 	KeyWelcomeMessage Key = "welcome.message"
 
+	KeyAboutVersion   Key = "about.version"
+	KeyAboutCommit    Key = "about.commit"
+	KeyAboutBuildTime Key = "about.build_time"
+	KeyAboutGoVersion Key = "about.go_version"
+
 	KeyAuthLogin       Key = "auth.login"
 	KeyAuthLogout      Key = "auth.logout"
 	KeyAuthRefresh     Key = "auth.refresh"

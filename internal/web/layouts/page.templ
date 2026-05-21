@@ -1,10 +1,13 @@
 package layouts
 
 import (
+	"git.sr.ht/~icikowski/account-center/internal/buildinfo"
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/breadcrumb"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/dialog"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdown"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
@@ -60,28 +63,82 @@ templ sidebarWrapper(nav *NavigationItem, bd BaseData) {
 		}
 	}
 	@sidebar.Script()
+	@dialog.Script()
 }
 
 templ sidebarContent(nav *NavigationItem, bd BaseData) {
 	@sidebar.Header() {
 		@sidebar.Menu() {
 			@sidebar.MenuItem() {
-				@sidebar.MenuButton(sidebar.MenuButtonProps{
-					Size: sidebar.MenuButtonSizeLg,
-				}) {
-					@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
-						@avatar.Image(avatar.ImageProps{
-							Src: "/assets/img/logo.png",
-						})
-					}
-					<div class="grid flex-1 text-left text-sm leading-tight">
-						if bd.InstanceName != "" {
-							<span class="truncate font-semibold">{ bd.InstanceName }</span>
-							<span class="truncate text-xs">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
-						} else {
-							<span class="truncate font-semibold">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+				@dialog.Dialog() {
+					@dialog.Trigger() {
+						@sidebar.MenuButton(sidebar.MenuButtonProps{
+							Size: sidebar.MenuButtonSizeLg,
+						}) {
+							@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
+								@avatar.Image(avatar.ImageProps{
+									Src: "/assets/img/logo.png",
+								})
+							}
+							<div class="grid flex-1 text-left text-sm leading-tight">
+								if bd.InstanceName != "" {
+									<span class="truncate font-semibold">{ bd.InstanceName }</span>
+									<span class="truncate text-xs">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+								} else {
+									<span class="truncate font-semibold">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+								}
+							</div>
 						}
-					</div>
+					}
+					@dialog.Content() {
+						@dialog.Header() {
+							<div class="flex items-center gap-4">
+								@avatar.Avatar(avatar.Props{
+									Class: "rounded-lg",
+								}) {
+									@avatar.Image(avatar.ImageProps{
+										Src: "/assets/img/logo.png",
+										Alt: i18n.T(ctx, i18n.KeyGeneralAccountCenter),
+									})
+								}
+								<div class="max-w-full">
+									@dialog.Title() {
+										{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+									}
+									if bd.InstanceName != "" {
+										@dialog.Description() {
+											{ bd.InstanceName }
+										}
+									}
+								</div>
+							</div>
+						}
+						{{
+							bi := buildinfo.Get()
+							bt := "unknown"
+							if !bi.BuildTime.IsZero() {
+								bt = bi.BuildTime.Format("2006-01-02 15:04:05")
+							}
+						}}
+						<div class="space-y-4">
+							<div class="space-y-2 text-sm">
+								<p class="font-semibold">{ i18n.T(ctx, i18n.KeyAboutVersion) }: { bi.Version }</p>
+								<p>{ i18n.T(ctx, i18n.KeyAboutBuildTime) }: { bt }</p>
+								<p>{ i18n.T(ctx, i18n.KeyAboutCommit) }: <code>{ bi.Commit }</code></p>
+								<p>{ i18n.T(ctx, i18n.KeyAboutGoVersion) }: { bi.GoVersion }</p>
+							</div>
+							<div class="space-y-2">
+								@button.Button(button.Props{
+									Size:    button.SizeIcon,
+									Variant: button.VariantSecondary,
+									Href:    "https://sr.ht/~icikowski/account-center",
+									Target:  "_blank",
+								}) {
+									@icon.GitBranch(icon.Props{Class: "size-4"})
+								}
+							</div>
+						</div>
+					}
 				}
 			}
 		}
