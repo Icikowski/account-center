@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"git.sr.ht/~icikowski/account-center/internal/auth"
+	"git.sr.ht/~icikowski/account-center/internal/buildinfo"
 	"git.sr.ht/~icikowski/account-center/internal/catalog"
 	"git.sr.ht/~icikowski/account-center/internal/config"
 	"git.sr.ht/~icikowski/account-center/internal/evaluator"
@@ -32,6 +33,14 @@ func main() {
 	}
 
 	log = xlog.New(cfg.Log.Level, cfg.Log.Pretty)
+
+	ver := buildinfo.Get()
+	log.Info().
+		Str("version", ver.Version).
+		Str("commit", ver.Commit).
+		Time("build_time", ver.BuildTime).
+		Str("go_version", ver.GoVersion).
+		Msg("initializing application")
 
 	trustedProxies, err := auth.NewTrustedProxies(cfg.Server.TrustedProxyCIDRs)
 	if err != nil {
