@@ -6,7 +6,7 @@ const (
 	RouteLogin                    = "/login"
 	RouteLogout                   = "/logout"
 	RouteRefresh                  = "/refresh"
-	RouteOIDCCallback             = "/oidc/callback"
+	RouteOIDCCallback             = "/oidc-callback"
 	RouteAssets                   = "/assets"
 	RouteWebManifest              = "/manifest.webmanifest"
 	RouteCatalog                  = "/catalog"
