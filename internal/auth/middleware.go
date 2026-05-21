@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
 
@@ -18,6 +19,7 @@ type Middleware interface {
 
 type authMiddleware struct {
 	svc               Service
+	sessionTTL        time.Duration
 	sessionCookieName string
 	oidcCallbackPath  string
 	loginPath         string
@@ -36,6 +38,7 @@ func NewMiddleware(
 ) Middleware {
 	return &authMiddleware{
 		svc:               svc,
+		sessionTTL:        svc.SessionTTL(),
 		sessionCookieName: sessionCookieName,
 		oidcCallbackPath:  oidcCallbackPath,
 		loginPath:         loginPath,
@@ -108,6 +111,7 @@ func (m *authMiddleware) withSessionContext(
 		return r, true
 	}
 
+	m.setSessionCookie(w, r, session.ID)
 	ctx := NewContext(r.Context(), &session)
 	return r.WithContext(ctx), true
 }
@@ -115,6 +119,7 @@ func (m *authMiddleware) withSessionContext(
 func (m *authMiddleware) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if sessionID, ok := m.sessionIDFromRequest(r); ok {
 		if _, err := m.svc.GetSession(r.Context(), sessionID); err == nil {
+			m.setSessionCookie(w, r, sessionID)
 			http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 			return
 		}
@@ -230,10 +235,13 @@ func (m *authMiddleware) sessionIDFromRequest(r *http.Request) (string, bool) {
 }
 
 func (m *authMiddleware) setSessionCookie(w http.ResponseWriter, r *http.Request, value string) {
+	expires := time.Now().Add(m.sessionTTL)
 	http.SetCookie(w, &http.Cookie{
 		Name:     m.sessionCookieName,
 		Value:    value,
 		Path:     consts.RouteRoot,
+		Expires:  expires,
+		MaxAge:   int((m.sessionTTL + time.Second - 1) / time.Second),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Secure:   requestIsHTTPS(r, m.trustedProxies),

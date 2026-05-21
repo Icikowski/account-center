@@ -74,6 +74,8 @@ type Service interface {
 	GetSession(ctx context.Context, sessionID string) (Session, error)
 	// RefreshSession forces a token refresh before returning the updated session.
 	RefreshSession(ctx context.Context, sessionID string) (Session, error)
+	// SessionTTL returns the configured session lifetime used for persisted sessions.
+	SessionTTL() time.Duration
 	// Logout removes the stored session and revokes provider-side tokens when supported.
 	Logout(ctx context.Context, sessionID string) error
 }
@@ -276,6 +278,11 @@ func (s *service) RefreshSession(ctx context.Context, sessionID string) (Session
 		return Session{}, err
 	}
 	return record.Session(), nil
+}
+
+// SessionTTL implements [Service].
+func (s *service) SessionTTL() time.Duration {
+	return s.sessionTTL
 }
 
 // Logout implements [Session].
