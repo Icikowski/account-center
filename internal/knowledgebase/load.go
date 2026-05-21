@@ -30,12 +30,15 @@ import (
 )
 
 const (
-	markdownExt = ".md"
+	extensionMarkdown = ".md"
+
+	documentIndex = "index.md"
 )
 
 var (
 	errBasePathNotDirectory = errors.New("knowledge base path is not a directory")
-	markdownRenderer        = goldmark.New(goldmark.WithRendererOptions(goldmarkhtml.WithUnsafe()))
+
+	markdownRenderer = goldmark.New(goldmark.WithRendererOptions(goldmarkhtml.WithUnsafe()))
 )
 
 type discoveredArticle struct {
@@ -96,7 +99,7 @@ func discoverArticles(baseDir string) ([]discoveredArticle, error) {
 		if d.IsDir() {
 			return nil
 		}
-		if filepath.Ext(d.Name()) != markdownExt {
+		if filepath.Ext(d.Name()) != extensionMarkdown {
 			return nil
 		}
 
@@ -170,10 +173,10 @@ func determineArticleLocation(
 	sourceRelPath = filepath.ToSlash(sourceRelPath)
 
 	fileName := path.Base(sourceRelPath)
-	isIndex := fileName == "index.md"
+	isIndex := fileName == documentIndex
 
 	switch {
-	case isIndex && sourceRelPath == "index.md":
+	case isIndex && sourceRelPath == documentIndex:
 		return "", "", false, xerror.NewValidationError(
 			fmt.Sprintf("root index article '%s' is not allowed", sourceRelPath),
 		)
@@ -181,7 +184,7 @@ func determineArticleLocation(
 		parentDir := path.Dir(sourceRelPath)
 		return sourceRelPath, "/" + path.Clean(parentDir), true, nil
 	default:
-		return sourceRelPath, "/" + strings.TrimSuffix(sourceRelPath, markdownExt), false, nil
+		return sourceRelPath, "/" + strings.TrimSuffix(sourceRelPath, extensionMarkdown), false, nil
 	}
 }
 
@@ -211,10 +214,7 @@ func duplicateSlugError(existing discoveredArticle, current discoveredArticle) e
 	}
 }
 
-func renderKnowledgeBase(
-	baseDir string,
-	discoveredArticles []discoveredArticle,
-) (*model.KnowledgeBase, error) {
+func renderKnowledgeBase(baseDir string, discoveredArticles []discoveredArticle) (*model.KnowledgeBase, error) {
 	articleBySourceRel := make(map[string]discoveredArticle, len(discoveredArticles))
 	for _, article := range discoveredArticles {
 		articleBySourceRel[article.sourceRelPath] = article
@@ -258,10 +258,7 @@ func renderKnowledgeBase(
 	return &knowledgeBase, nil
 }
 
-func renderArticle(
-	ctx renderContext,
-	article discoveredArticle,
-) (model.KnowledgeBaseArticle, error) {
+func renderArticle(ctx renderContext, article discoveredArticle) (model.KnowledgeBaseArticle, error) {
 	document := markdownRenderer.Parser().Parse(text.NewReader(article.content))
 	title := strings.TrimSpace(article.frontMatter.Title)
 	if title == "" {
@@ -402,7 +399,7 @@ func rewriteLinkAttribute(
 		return rawValue, "", "", nil
 	}
 
-	if attrName == "href" && strings.EqualFold(path.Ext(parsedURL.Path), markdownExt) {
+	if attrName == "href" && strings.EqualFold(path.Ext(parsedURL.Path), extensionMarkdown) {
 		targetArticle, err := resolveLinkedArticle(ctx, article, parsedURL.Path)
 		if err != nil {
 			return "", "", "", err
@@ -455,11 +452,7 @@ func resolveAsset(
 	article discoveredArticle,
 	rawPath string,
 ) (model.KnowledgeBaseAsset, error) {
-	sourcePath, sourceRelPath, err := resolveRelativeTarget(
-		ctx.baseDir,
-		article.sourcePath,
-		rawPath,
-	)
+	sourcePath, sourceRelPath, err := resolveRelativeTarget(ctx.baseDir, article.sourcePath, rawPath)
 	if err != nil {
 		return model.KnowledgeBaseAsset{}, err
 	}
@@ -502,10 +495,7 @@ func resolveAsset(
 	return asset, nil
 }
 
-func resolveFeaturedImage(
-	ctx renderContext,
-	article discoveredArticle,
-) (string, string, error) {
+func resolveFeaturedImage(ctx renderContext, article discoveredArticle) (string, string, error) {
 	rawValue := strings.TrimSpace(article.frontMatter.FeaturedImage)
 	if rawValue == "" {
 		return "", "", nil
@@ -524,7 +514,7 @@ func resolveFeaturedImage(
 	if parsedURL.Path == "" {
 		return "", "", xerror.NewValidationError("featured image path is empty")
 	}
-	if strings.EqualFold(path.Ext(parsedURL.Path), markdownExt) {
+	if strings.EqualFold(path.Ext(parsedURL.Path), extensionMarkdown) {
 		return "", "", xerror.NewValidationError(
 			fmt.Sprintf("featured image '%s' cannot point to a markdown article", rawValue),
 		)
@@ -542,11 +532,7 @@ func resolveFeaturedImage(
 	), asset.ID, nil
 }
 
-func resolveRelativeTarget(
-	baseDir string,
-	sourcePath string,
-	rawPath string,
-) (string, string, error) {
+func resolveRelativeTarget(baseDir string, sourcePath string, rawPath string) (string, string, error) {
 	unescapedPath, err := url.PathUnescape(rawPath)
 	if err != nil {
 		return "", "", xerror.NewValidationError(fmt.Sprintf(

@@ -3,10 +3,8 @@ package xmiddleware
 import (
 	"context"
 	"net/http"
-)
 
-const (
-	cookieSidebarState string = "sidebar_state"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 )
 
 type contextKeySidebarState struct{}
@@ -15,7 +13,7 @@ type contextKeySidebarState struct{}
 // context.
 func SidebarState(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, _ := r.Cookie(cookieSidebarState)
+		cookie, _ := r.Cookie(consts.CookieSidebarState)
 		collapsed := cookie != nil && cookie.Value == "false"
 		ctx := context.WithValue(r.Context(), contextKeySidebarState{}, collapsed)
 		next.ServeHTTP(w, r.WithContext(ctx))

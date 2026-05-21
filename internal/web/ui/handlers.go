@@ -9,6 +9,7 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 
 	"git.sr.ht/~icikowski/account-center/internal/auth"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/evaluator"
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/knowledgebase"
@@ -17,13 +18,6 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
 	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
 	"git.sr.ht/~icikowski/account-center/internal/web/templates"
-)
-
-const (
-	routeRoot                     = "/"
-	routeCatalog                  = "/catalog"
-	routeKnowledgeBase            = "/kb"
-	routeKnowledgeBaseAttachments = routeKnowledgeBase + "/attachments"
 )
 
 type uiHandler struct {
@@ -59,20 +53,20 @@ func (h *uiHandler) Bind(r chi.Router) {
 		h.baseDataMiddleware,
 	)
 
-	r.HandleFunc(routeRoot, h.splash)
-	r.HandleFunc(routeCatalog, h.catalog)
+	r.HandleFunc(consts.RouteRoot, h.splash)
+	r.HandleFunc(consts.RouteCatalog, h.catalog)
 	if h.knowledgeBaseSource != nil {
-		r.Route(routeKnowledgeBaseAttachments, knowledgebase.NewAttachmentsHandler(h.knowledgeBaseSource).Bind)
-		r.Route(routeKnowledgeBase, knowledgebase.NewArticleHandler(
+		r.Route(consts.RouteKnowledgeBaseAttachments, knowledgebase.NewAttachmentsHandler(h.knowledgeBaseSource).Bind)
+		r.Route(consts.RouteKnowledgeBase, knowledgebase.NewArticleHandler(
 			h.knowledgeBaseSource,
-			routeKnowledgeBase,
-			routeKnowledgeBaseAttachments,
+			consts.RouteKnowledgeBase,
+			consts.RouteKnowledgeBaseAttachments,
 			h.knowledgeBaseListing,
 			h.knowledgeBaseArticle,
 			knowledgebase.WithNotFoundHandler(h.notFound),
 		).Bind)
 	} else {
-		r.HandleFunc(routeKnowledgeBase, h.knowledgeBaseDisabled)
+		r.HandleFunc(consts.RouteKnowledgeBase, h.knowledgeBaseDisabled)
 	}
 
 	r.NotFound(h.notFound)
@@ -82,7 +76,7 @@ func (h *uiHandler) Bind(r chi.Router) {
 func (h *uiHandler) splash(w http.ResponseWriter, r *http.Request) {
 	session := auth.FromContext(r.Context())
 	if session != nil {
-		http.Redirect(w, r, routeCatalog, http.StatusSeeOther)
+		http.Redirect(w, r, consts.RouteCatalog, http.StatusSeeOther)
 		return
 	}
 
@@ -154,7 +148,7 @@ func (h *uiHandler) baseDataMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx = layouts.NewBaseDataContext(ctx, baseData)
+		ctx = layouts.NewContext(ctx, baseData)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

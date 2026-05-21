@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -31,12 +32,12 @@ func NewRedisStore(client redis.Cmdable, keyPrefix string) SessionStore {
 	}
 }
 
-// LoginStates returns the login-state store.
+// LoginStates implements [SessionStore].
 func (s *redisStore) LoginStates() model.Store[string, LoginState] {
 	return s.loginStates
 }
 
-// Sessions returns the persisted-session store.
+// Sessions implements [SessionStore].
 func (s *redisStore) Sessions() model.Store[string, StoredSession] {
 	return s.sessions
 }
@@ -71,12 +72,7 @@ func (s *redisValueStore[T]) Get(ctx context.Context, key string) (T, error) {
 	return out, nil
 }
 
-func (s *redisValueStore[T]) Set(
-	ctx context.Context,
-	key string,
-	value T,
-	ttl time.Duration,
-) error {
+func (s *redisValueStore[T]) Set(ctx context.Context, key string, value T, ttl time.Duration) error {
 	payload, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("marshal %s %q: %w", s.kind, key, err)
@@ -92,5 +88,5 @@ func (s *redisValueStore[T]) Delete(ctx context.Context, key string) error {
 }
 
 func (s *redisValueStore[T]) key(key string) string {
-	return s.keyPrefix + ":" + s.kind + ":" + key
+	return strings.Join([]string{s.keyPrefix, s.kind, key}, ":")
 }

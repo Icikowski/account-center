@@ -12,7 +12,7 @@ import (
 )
 
 templ Page(title string, nav *NavigationItem) {
-	{{ bd := baseDataFromContext(ctx) }}
+	{{ bd := FromContext(ctx) }}
 	<!DOCTYPE html>
 	<html class="h-full">
 		<head>

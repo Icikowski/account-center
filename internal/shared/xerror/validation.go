@@ -66,8 +66,7 @@ func NewItemValidationError(index int, cause error) error {
 
 // Error implements [error].
 func (e ItemValidationError) Error() string {
-	var ve ValidationError
-	if errors.As(e.cause, &ve) {
+	if ve, ok := errors.AsType[ValidationError](e.cause); ok {
 		causes := ve.joinCauses()
 		if causes == nil {
 			return fmt.Sprintf("%s at index %d", ve.msg, e.index)

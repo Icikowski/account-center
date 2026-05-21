@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
 )
@@ -51,17 +52,16 @@ type articleHandler struct {
 	articleBasePath    string
 	attachmentBasePath string
 	notFoundHandler    http.HandlerFunc
-	listingHandler     ListingHandlerFunc
-	handler            ArticleHandlerFunc
+	listingHandlerFn   ListingHandlerFunc
+	articleHandlerFn   ArticleHandlerFunc
 }
 
 // NewArticleHandler creates a route binder for serving knowledge base articles.
 func NewArticleHandler(
 	source model.Reloader[model.KnowledgeBase],
-	articleBasePath string,
-	attachmentBasePath string,
+	articleBasePath, attachmentBasePath string,
 	listingHandler ListingHandlerFunc,
-	handler ArticleHandlerFunc,
+	articleHanlder ArticleHandlerFunc,
 	opts ...ArticleHandlerOption,
 ) xhttp.RouteBinder {
 	h := &articleHandler{
@@ -69,8 +69,8 @@ func NewArticleHandler(
 		articleBasePath:    articleBasePath,
 		attachmentBasePath: attachmentBasePath,
 		notFoundHandler:    http.NotFound,
-		listingHandler:     listingHandler,
-		handler:            handler,
+		listingHandlerFn:   listingHandler,
+		articleHandlerFn:   articleHanlder,
 	}
 
 	for _, opt := range opts {
@@ -94,12 +94,12 @@ func (h *articleHandler) article(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if slug == "" {
-		if h.listingHandler == nil {
-			http.NotFound(w, r)
+		if h.listingHandlerFn == nil {
+			h.notFoundHandler(w, r)
 			return
 		}
 
-		h.listingHandler(
+		h.listingHandlerFn(
 			w,
 			r,
 			resolveListingArticles(
@@ -117,7 +117,7 @@ func (h *articleHandler) article(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.handler(
+	h.articleHandlerFn(
 		w,
 		r,
 		article,
@@ -158,7 +158,7 @@ func (h *attachmentsHandler) asset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if asset.ContentType != "" {
-		w.Header().Set("Content-Type", asset.ContentType)
+		w.Header().Set(consts.HeaderContentType, asset.ContentType)
 	}
 
 	http.ServeContent(

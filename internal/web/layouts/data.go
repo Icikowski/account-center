@@ -50,12 +50,13 @@ func (u *User) GravatarURL() string {
 
 type contextKeyLayoutData struct{}
 
-// NewBaseDataContext creates a new context with the given [BaseData] set.
-func NewBaseDataContext(ctx context.Context, data BaseData) context.Context {
+// NewContext creates a new context with the given [BaseData] set.
+func NewContext(ctx context.Context, data BaseData) context.Context {
 	return context.WithValue(ctx, contextKeyLayoutData{}, data)
 }
 
-func baseDataFromContext(ctx context.Context) BaseData {
+// FromContext retrieves the [BaseData] from the context.
+func FromContext(ctx context.Context) BaseData {
 	data, ok := ctx.Value(contextKeyLayoutData{}).(BaseData)
 	if !ok {
 		return BaseData{}

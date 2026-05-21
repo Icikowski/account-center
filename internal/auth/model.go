@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	pathOIDCCallback = "/oidc-callback"
+	paramNext  = "next"
+	paramCode  = "code"
+	paramState = "state"
 )
 
 var (
@@ -49,7 +51,7 @@ var (
 // the authentication process.
 type LoginState struct {
 	ID           string    `json:"id"`
-	ReturnTo     string    `json:"next"`
+	Next         string    `json:"next"`
 	RedirectURL  string    `json:"redirect_url"`
 	CodeVerifier string    `json:"code_verifier"`
 	Nonce        string    `json:"nonce"`
@@ -81,22 +83,22 @@ func (r StoredSession) Session() Session {
 
 // Session represents the public view of an authenticated session, without any token data.
 type Session struct {
-	ID   string
-	User User
+	ID   string `json:"id"`
+	User User   `json:"user"`
 }
 
 // User contains the identity data fetched from OIDC.
 type User struct {
-	Subject string
-	Name    string
-	Email   string
-	Groups  []string
+	Subject string   `json:"sub"`
+	Name    string   `json:"name"`
+	Email   string   `json:"email"`
+	Groups  []string `json:"groups"`
 }
 
 // AuthorizationRequest describes a newly prepared OIDC login request.
 type AuthorizationRequest struct {
-	LoginID string
-	URL     string
+	LoginID string `json:"login_id"`
+	URL     string `json:"url"`
 }
 
 type profileClaims struct {

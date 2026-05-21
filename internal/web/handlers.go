@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"git.sr.ht/~icikowski/account-center/internal/auth"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/evaluator"
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/model"
@@ -14,15 +15,6 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/web/assets"
 	"git.sr.ht/~icikowski/account-center/internal/web/ui"
 	"git.sr.ht/~icikowski/account-center/internal/web/webmanifest"
-)
-
-const (
-	routeRoot        = "/"
-	routeAssets      = "/assets"
-	routeWebManifest = "/manifest.webmanifest"
-	routeLogin       = "/login"
-	routeRefresh     = "/refresh"
-	routeLogout      = "/logout"
 )
 
 // NewHandler creates a new HTTP handler for the application, setting up routes for static assets and the UI.
@@ -35,18 +27,19 @@ func NewHandler(
 	trustedProxies *auth.TrustedProxies,
 	evaluator evaluator.Evaluator,
 ) http.Handler {
-	assetsHandler := assets.NewHandler(routeAssets)
-	webManifestHandler := webmanifest.NewHandler(instanceName, routeAssets)
+	assetsHandler := assets.NewHandler(consts.RouteAssets)
+	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
 	uiHandler := ui.NewHandler(instanceName, catalogSource, knowledgeBaseSource, evaluator)
 
 	authMiddleware := auth.NewMiddleware(
 		authService,
 		sessionCookieName,
-		routeLogin,
-		routeRefresh,
-		routeLogout,
+		consts.RouteOIDCCallback,
+		consts.RouteLogin,
+		consts.RouteRefresh,
+		consts.RouteLogout,
 		trustedProxies,
-		routeRoot,
+		consts.RouteRoot,
 	)
 
 	r := chi.NewRouter()
@@ -58,15 +51,15 @@ func NewHandler(
 
 	r.With(
 		xmiddleware.StaticResourcesCacheControl,
-	).Route(routeAssets, assetsHandler.Bind)
+	).Route(consts.RouteAssets, assetsHandler.Bind)
 
 	r.With(
 		xmiddleware.I18n(i18n.NewBundle()),
-	).Route(routeWebManifest, webManifestHandler.Bind)
+	).Route(consts.RouteWebManifest, webManifestHandler.Bind)
 
 	r.With(
 		authMiddleware.Middleware,
-	).Route(routeRoot, uiHandler.Bind)
+	).Route(consts.RouteRoot, uiHandler.Bind)
 
 	return r
 }

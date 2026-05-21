@@ -8,12 +8,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
-)
-
-const (
-	mimePNG = "image/png"
 )
 
 type webManifestHandler struct {
@@ -37,7 +34,7 @@ func (h *webManifestHandler) Bind(r chi.Router) {
 func (h *webManifestHandler) webManifest(w http.ResponseWriter, r *http.Request) {
 	m := h.generateManifest(r.Context())
 
-	w.Header().Set("Content-Type", "application/manifest+json")
+	w.Header().Set(consts.HeaderContentType, consts.MIMEApplicationManifestJSON)
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(m); err != nil {
 		l := zerolog.Ctx(r.Context())
@@ -67,13 +64,13 @@ func (h *webManifestHandler) generateManifest(ctx context.Context) Manifest {
 		Icons: Icons{
 			{
 				Source:  h.assetsPath + "/img/icon512_rounded.png",
-				Type:    mimePNG,
+				Type:    consts.MIMEImagePNG,
 				Sizes:   IconSizes{IconSize512x512},
 				Purpose: IconPurposes{IconPurposeAny},
 			},
 			{
 				Source:  h.assetsPath + "/img/icon512_maskable.png",
-				Type:    mimePNG,
+				Type:    consts.MIMEImagePNG,
 				Sizes:   IconSizes{IconSize512x512},
 				Purpose: IconPurposes{IconPurposeMaskable},
 			},
@@ -81,11 +78,11 @@ func (h *webManifestHandler) generateManifest(ctx context.Context) Manifest {
 		Shortcuts: Shortcuts{
 			{
 				Name: i18n.T(ctx, i18n.KeySectionCatalog),
-				URL:  "/catalog",
+				URL:  consts.RouteCatalog,
 				Icons: Icons{
 					{
 						Source:  h.assetsPath + "/img/shortcut-catalog.png",
-						Type:    mimePNG,
+						Type:    consts.MIMEImagePNG,
 						Sizes:   IconSizes{IconSize128x128},
 						Purpose: IconPurposes{IconPurposeAny},
 					},
@@ -93,11 +90,11 @@ func (h *webManifestHandler) generateManifest(ctx context.Context) Manifest {
 			},
 			{
 				Name: i18n.T(ctx, i18n.KeySectionKnowledgeBase),
-				URL:  "/kb",
+				URL:  consts.RouteKnowledgeBase,
 				Icons: Icons{
 					{
 						Source:  h.assetsPath + "/img/shortcut-kb.png",
-						Type:    mimePNG,
+						Type:    consts.MIMEImagePNG,
 						Sizes:   IconSizes{IconSize128x128},
 						Purpose: IconPurposes{IconPurposeAny},
 					},

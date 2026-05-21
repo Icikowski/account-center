@@ -6,6 +6,8 @@ import (
 	"net/url"
 
 	"go.yaml.in/yaml/v3"
+
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 )
 
 var errSchemeNotAllowed = errors.New("scheme not allowed")
@@ -32,7 +34,7 @@ func (u *URL) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+	if parsed.Scheme != consts.SchemeHTTP && parsed.Scheme != consts.SchemeHTTPS {
 		return fmt.Errorf("%w: %s", errSchemeNotAllowed, parsed.Scheme)
 	}
 

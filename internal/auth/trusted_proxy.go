@@ -15,7 +15,7 @@ type TrustedProxies struct {
 // NewTrustedProxies parses the configured trusted proxy IPs/CIDRs.
 func NewTrustedProxies(values []string) (*TrustedProxies, error) {
 	if len(values) == 0 {
-		// No trusted proxies configured, so we can skip parsing and just return nil.
+		// No trusted proxies configured.
 		//
 		//nolint:nilnil
 		return nil, nil

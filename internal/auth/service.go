@@ -16,6 +16,14 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/singleflight"
+
+	"git.sr.ht/~icikowski/account-center/internal/consts"
+)
+
+const (
+	hintRefreshToken = "refresh_token"
+	hintAccessToken  = "access_token"
+	hintIDToken      = "id_token"
 )
 
 type serviceOptions struct {
@@ -61,7 +69,7 @@ type Service interface {
 	// AuthorizationRequest prepares a new OIDC authorization request and stores its transient login state.
 	AuthorizationRequest(ctx context.Context, r *http.Request, next string) (AuthorizationRequest, error)
 	// ExchangeCode completes the authorization code flow for the given login state.
-	ExchangeCode(ctx context.Context, r *http.Request, loginID, code string) (Session, string, error)
+	ExchangeCode(ctx context.Context, loginID, code string) (Session, string, error)
 	// GetSession returns the stored session and refreshes it automatically when it is expired or close to expiry.
 	GetSession(ctx context.Context, sessionID string) (Session, error)
 	// RefreshSession forces a token refresh before returning the updated session.
@@ -140,7 +148,7 @@ func NewService(
 func (s *service) AuthorizationRequest(
 	ctx context.Context,
 	r *http.Request,
-	returnTo string,
+	next string,
 ) (AuthorizationRequest, error) {
 	redirectURL, err := s.redirectURL(r)
 	if err != nil {
@@ -162,7 +170,7 @@ func (s *service) AuthorizationRequest(
 
 	state := LoginState{
 		ID:           loginID,
-		ReturnTo:     returnTo,
+		Next:         next,
 		RedirectURL:  redirectURL,
 		CodeVerifier: codeVerifier,
 		Nonce:        nonce,
@@ -186,11 +194,7 @@ func (s *service) AuthorizationRequest(
 }
 
 // ExchangeCode implements [Service].
-func (s *service) ExchangeCode(
-	ctx context.Context,
-	_ *http.Request,
-	loginID, code string,
-) (Session, string, error) {
+func (s *service) ExchangeCode(ctx context.Context, loginID, code string) (Session, string, error) {
 	state, err := s.store.LoginStates().Get(ctx, loginID)
 	if err != nil {
 		return Session{}, "", fmt.Errorf("%w: %w", errLoadLoginState, err)
@@ -240,7 +244,7 @@ func (s *service) ExchangeCode(
 		return Session{}, "", fmt.Errorf("%w: %w", errSaveSession, err)
 	}
 
-	return record.Session(), state.ReturnTo, nil
+	return record.Session(), state.Next, nil
 }
 
 // GetSession implements [Service].
@@ -287,16 +291,10 @@ func (s *service) Logout(ctx context.Context, sessionID string) error {
 	var revokeErr error
 	if s.revocationEndpoint != "" {
 		if record.RefreshToken != "" {
-			revokeErr = errors.Join(
-				revokeErr,
-				s.revokeToken(ctx, record.RefreshToken, "refresh_token"),
-			)
+			revokeErr = errors.Join(revokeErr, s.revokeToken(ctx, record.RefreshToken, hintRefreshToken))
 		}
 		if record.AccessToken != "" {
-			revokeErr = errors.Join(
-				revokeErr,
-				s.revokeToken(ctx, record.AccessToken, "access_token"),
-			)
+			revokeErr = errors.Join(revokeErr, s.revokeToken(ctx, record.AccessToken, hintAccessToken))
 		}
 	}
 
@@ -308,11 +306,7 @@ func (s *service) Logout(ctx context.Context, sessionID string) error {
 	return errors.Join(revokeErr, deleteErr)
 }
 
-func (s *service) refreshSession(
-	ctx context.Context,
-	sessionID string,
-	force bool,
-) (StoredSession, error) {
+func (s *service) refreshSession(ctx context.Context, sessionID string, force bool) (StoredSession, error) {
 	result, err, _ := s.refreshGroup.Do(sessionID, func() (any, error) {
 		now := time.Now()
 		record, err := s.store.Sessions().Get(ctx, sessionID)
@@ -433,7 +427,7 @@ func (s *service) verifyIDToken(
 ) (string, profileClaims, error) {
 	var claims profileClaims
 
-	raw, ok := token.Extra("id_token").(string)
+	raw, ok := token.Extra(hintIDToken).(string)
 	if !ok || raw == "" {
 		if require {
 			return "", profileClaims{}, errIDTokenMissing
@@ -563,7 +557,7 @@ func (s *service) redirectURL(r *http.Request) (string, error) {
 		return "", fmt.Errorf("%w: %w", errBaseURLParse, err)
 	}
 
-	return base.ResolveReference(&url.URL{Path: pathOIDCCallback}).String(), nil
+	return base.ResolveReference(&url.URL{Path: consts.RouteOIDCCallback}).String(), nil
 }
 
 func requestBaseURL(r *http.Request, trustedProxies *TrustedProxies) (string, error) {
@@ -573,19 +567,19 @@ func requestBaseURL(r *http.Request, trustedProxies *TrustedProxies) (string, er
 
 	scheme := ""
 	if trustedProxies.AllowsForwardedHeaders(r) {
-		scheme = headerFirstValue(r.Header.Get("X-Forwarded-Proto"))
+		scheme = headerFirstValue(r.Header.Get(consts.HeaderXForwardedProto))
 	}
 	switch {
 	case scheme != "":
 	case r.TLS != nil:
-		scheme = "https"
+		scheme = consts.SchemeHTTPS
 	default:
-		scheme = "http"
+		scheme = consts.SchemeHTTP
 	}
 
 	host := ""
 	if trustedProxies.AllowsForwardedHeaders(r) {
-		host = headerFirstValue(r.Header.Get("X-Forwarded-Host"))
+		host = headerFirstValue(r.Header.Get(consts.HeaderXForwardedHost))
 	}
 	if host == "" {
 		host = r.Host

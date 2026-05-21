@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
-)
 
-const oidcCallbackPath = "/oidc-callback"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
+)
 
 // Middleware defines the interface for the authentication middleware provider.
 type Middleware interface {
@@ -19,6 +19,7 @@ type Middleware interface {
 type authMiddleware struct {
 	svc               Service
 	sessionCookieName string
+	oidcCallbackPath  string
 	loginPath         string
 	refreshPath       string
 	logoutPath        string
@@ -29,13 +30,14 @@ type authMiddleware struct {
 // NewMiddleware creates a new [Middleware] instance with the provided configuration.
 func NewMiddleware(
 	svc Service,
-	sessionCookieName, loginPath, refreshPath, logoutPath string,
+	sessionCookieName, oidcCallbackPath, loginPath, refreshPath, logoutPath string,
 	trustedProxies *TrustedProxies,
 	publicPaths ...string,
 ) Middleware {
 	return &authMiddleware{
 		svc:               svc,
 		sessionCookieName: sessionCookieName,
+		oidcCallbackPath:  oidcCallbackPath,
 		loginPath:         loginPath,
 		refreshPath:       refreshPath,
 		logoutPath:        logoutPath,
@@ -44,10 +46,11 @@ func NewMiddleware(
 	}
 }
 
+// Middleware implements [Middleware].
 func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case oidcCallbackPath:
+		case m.oidcCallbackPath:
 			m.handleCallback(w, r)
 			return
 		case m.loginPath:
@@ -99,11 +102,7 @@ func (m *authMiddleware) withSessionContext(
 				m.redirectToLogin(w, r, m.currentRequestTarget(r))
 				return nil, false
 			}
-			http.Error(
-				w,
-				http.StatusText(http.StatusInternalServerError),
-				http.StatusInternalServerError,
-			)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return nil, false
 		}
 		return r, true
@@ -113,69 +112,56 @@ func (m *authMiddleware) withSessionContext(
 	return r.WithContext(ctx), true
 }
 
-func (m *authMiddleware) handleLogin(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (m *authMiddleware) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if sessionID, ok := m.sessionIDFromRequest(r); ok {
 		if _, err := m.svc.GetSession(r.Context(), sessionID); err == nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 			return
 		}
 		m.clearSessionCookie(w)
 	}
 
-	returnTo := m.sanitizeRedirectTarget(r, r.URL.Query().Get("next"))
-	if returnTo == "" {
-		returnTo = "/"
+	next := m.sanitizeRedirectTarget(r, r.URL.Query().Get(paramNext))
+	if next == "" {
+		next = consts.RouteRoot
 	}
 
-	authReq, err := m.svc.AuthorizationRequest(r.Context(), r, returnTo)
+	authReq, err := m.svc.AuthorizationRequest(r.Context(), r, next)
 	if err != nil {
-		http.Error(
-			w,
-			http.StatusText(http.StatusInternalServerError),
-			http.StatusInternalServerError,
-		)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, authReq.URL, http.StatusSeeOther)
 }
 
-func (m *authMiddleware) handleCallback(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
-	loginID := r.URL.Query().Get("state")
-	code := r.URL.Query().Get("code")
+func (m *authMiddleware) handleCallback(w http.ResponseWriter, r *http.Request) {
+	loginID := r.URL.Query().Get(paramState)
+	code := r.URL.Query().Get(paramCode)
 	if loginID == "" || code == "" {
 		http.Redirect(w, r, m.loginPath, http.StatusSeeOther)
 		return
 	}
 
-	session, returnTo, err := m.svc.ExchangeCode(r.Context(), r, loginID, code)
+	session, next, err := m.svc.ExchangeCode(r.Context(), loginID, code)
 	if err != nil {
 		http.Redirect(w, r, m.loginPath, http.StatusSeeOther)
 		return
 	}
 
 	m.setSessionCookie(w, r, session.ID)
-	redirectTarget := m.sanitizeRedirectTarget(r, returnTo)
+	redirectTarget := m.sanitizeRedirectTarget(r, next)
 	if redirectTarget == "" {
-		redirectTarget = "/"
+		redirectTarget = consts.RouteRoot
 	}
 
 	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
-func (m *authMiddleware) handleRefresh(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (m *authMiddleware) handleRefresh(w http.ResponseWriter, r *http.Request) {
 	sessionID, ok := m.sessionIDFromRequest(r)
 	if !ok {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 		return
 	}
 
@@ -183,55 +169,48 @@ func (m *authMiddleware) handleRefresh(
 	if err != nil {
 		m.clearSessionCookie(w)
 		if errors.Is(err, errNotFound) || errors.Is(err, errReauthenticationRequired) {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 			return
 		}
-		http.Error(
-			w,
-			http.StatusText(http.StatusInternalServerError),
-			http.StatusInternalServerError,
-		)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
 	m.setSessionCookie(w, r, session.ID)
-	redirectTarget := m.sanitizeRedirectTarget(r, r.URL.Query().Get("next"))
+	redirectTarget := m.sanitizeRedirectTarget(r, r.URL.Query().Get(paramNext))
 	if redirectTarget == "" {
 		redirectTarget = m.sanitizeRedirectTarget(r, r.Referer())
 	}
 	if redirectTarget == "" {
-		redirectTarget = "/"
+		redirectTarget = consts.RouteRoot
 	}
 
 	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
-func (m *authMiddleware) handleLogout(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (m *authMiddleware) handleLogout(w http.ResponseWriter, r *http.Request) {
 	if sessionID, ok := m.sessionIDFromRequest(r); ok {
 		_ = m.svc.Logout(r.Context(), sessionID)
 	}
 	m.clearSessionCookie(w)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 }
 
-func (m *authMiddleware) redirectToLogin(w http.ResponseWriter, r *http.Request, returnTo string) {
+func (m *authMiddleware) redirectToLogin(w http.ResponseWriter, r *http.Request, next string) {
 	target := m.loginPath
-	if returnTo != "" {
-		target = m.loginPath + "?next=" + url.QueryEscape(returnTo)
+	if next != "" {
+		target = m.loginPath + "?" + paramNext + "=" + url.QueryEscape(next)
 	}
 	http.Redirect(w, r, target, http.StatusSeeOther)
 }
 
 func (m *authMiddleware) currentRequestTarget(r *http.Request) string {
 	if r == nil || r.URL == nil {
-		return "/"
+		return consts.RouteRoot
 	}
 	target := r.URL.Path
 	if target == "" {
-		target = "/"
+		target = consts.RouteRoot
 	}
 	if r.URL.RawQuery != "" {
 		target += "?" + r.URL.RawQuery
@@ -254,7 +233,7 @@ func (m *authMiddleware) setSessionCookie(w http.ResponseWriter, r *http.Request
 	http.SetCookie(w, &http.Cookie{
 		Name:     m.sessionCookieName,
 		Value:    value,
-		Path:     "/",
+		Path:     consts.RouteRoot,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Secure:   requestIsHTTPS(r, m.trustedProxies),
@@ -265,7 +244,7 @@ func (m *authMiddleware) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     m.sessionCookieName,
 		Value:    "",
-		Path:     "/",
+		Path:     consts.RouteRoot,
 		MaxAge:   -1,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
@@ -295,7 +274,7 @@ func requestIsHTTPS(r *http.Request, trustedProxies *TrustedProxies) bool {
 	if !trustedProxies.AllowsForwardedHeaders(r) {
 		return false
 	}
-	return strings.EqualFold(headerFirstValue(r.Header.Get("X-Forwarded-Proto")), "https")
+	return strings.EqualFold(headerFirstValue(r.Header.Get(consts.HeaderXForwardedProto)), consts.SchemeHTTPS)
 }
 
 func (m *authMiddleware) sanitizeRedirectTarget(r *http.Request, candidate string) string {
@@ -322,7 +301,7 @@ func (m *authMiddleware) sanitizeRedirectTarget(r *http.Request, candidate strin
 		}
 		target := parsed.EscapedPath()
 		if target == "" {
-			target = "/"
+			target = consts.RouteRoot
 		}
 		if parsed.RawQuery != "" {
 			target += "?" + parsed.RawQuery
@@ -340,7 +319,7 @@ func (m *authMiddleware) requestHost(r *http.Request) string {
 		return ""
 	}
 	if m.trustedProxies.AllowsForwardedHeaders(r) {
-		if host := headerFirstValue(r.Header.Get("X-Forwarded-Host")); host != "" {
+		if host := headerFirstValue(r.Header.Get(consts.HeaderXForwardedHost)); host != "" {
 			return host
 		}
 	}

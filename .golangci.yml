@@ -23,6 +23,7 @@ formatters:
   exclusions:
     paths:
       - "(.+)_templ.go"
+      - "internal/web/components"
 linters:
   enable:
     - asasalint
