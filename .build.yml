@@ -41,8 +41,19 @@ tasks:
       podman login --username Icikowski --password-stdin ghcr.io < "$github_token_file" >/dev/null
       set -x
 
+      build_version=$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "dev")
+      build_commit=$(git rev-parse --verify ${GIT_REF:-HEAD})
+      build_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      build_short_ref=$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "main")
       local_image="localhost/account-center:${image_tag}"
-      podman build --file Containerfile --tag "$local_image" .
+
+      podman build \
+        --file Containerfile \
+        --build-arg BUILD_VERSION="$build_version" \
+        --build-arg BUILD_COMMIT="$build_commit" \
+        --build-arg BUILD_TIMESTAMP="$build_timestamp" \
+        --build-arg BUILD_SHORT_REF="$build_short_ref" \
+        --tag "$local_image" .
 
       for repository in \
         icikowski/account-center \

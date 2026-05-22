@@ -113,7 +113,7 @@ When contributing:
 Published images are available as:
 
 - `icikowski/account-center`
-- `ghcr.io/Icikowski/account-center`
+- `ghcr.io/icikowski/account-center`
 
 See [`docs/deployment.md`](docs/deployment.md) for complete examples.
 

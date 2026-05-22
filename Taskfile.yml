@@ -4,11 +4,11 @@ vars:
   TAILWIND_CMD:
     sh: command -v tailwindcss >/dev/null 2>&1 && echo "tailwindcss" || echo "npx tailwindcss@latest"
   BUILD_VERSION:
-    sh: git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "dev"
+    sh: echo ${BUILD_VERSION:-$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "dev")}
   BUILD_COMMIT:
-    sh: git rev-parse --verify ${GIT_REF:-HEAD}
+    sh: echo ${BUILD_COMMIT:-$(git rev-parse --verify ${GIT_REF:-HEAD})}
   BUILD_TIMESTAMP:
-    sh: date -u +"%Y-%m-%dT%H:%M:%SZ"
+    sh: echo ${BUILD_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 tasks:
   lint:
     cmd: golangci-lint run --fix ./...

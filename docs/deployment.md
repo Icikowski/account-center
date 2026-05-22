@@ -10,7 +10,7 @@ Account Center can be deployed:
 Published container repositories:
 
 - `icikowski/account-center`
-- `ghcr.io/Icikowski/account-center`
+- `ghcr.io/icikowski/account-center`
 
 ## Common requirements
 
@@ -67,7 +67,7 @@ docker run -d \
   --env-file .env \
   -v "$PWD/catalog.yaml:/data/catalog.yaml:ro" \
   -v "$PWD/kb:/data/kb:ro" \
-  ghcr.io/Icikowski/account-center:<tag>
+  ghcr.io/icikowski/account-center:<tag>
 ```
 
 If the knowledge base is disabled, you can omit the `kb` mount.
@@ -90,7 +90,7 @@ Minimal Compose example with Redis-backed sessions:
 ```yaml
 services:
   account-center:
-    image: ghcr.io/Icikowski/account-center:<tag>
+    image: ghcr.io/icikowski/account-center:<tag>
     restart: unless-stopped
     env_file:
       - .env
