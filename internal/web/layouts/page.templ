@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/breadcrumb"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/collapsible"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/dialog"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdown"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
@@ -64,6 +65,7 @@ templ sidebarWrapper(nav *NavigationItem, bd BaseData) {
 	}
 	@sidebar.Script()
 	@dialog.Script()
+	@collapsible.Script()
 }
 
 templ sidebarContent(nav *NavigationItem, bd BaseData) {
@@ -225,74 +227,88 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 							{ userFullName }
 						}
 						@dropdown.Separator()
-						@dropdown.Sub() {
-							@dropdown.SubTrigger() {
-								<span class="flex items-center">
-									@icon.SwatchBook(icon.Props{Class: "size-4 mr-2"})
-									{ i18n.T(ctx, i18n.KeyGeneralTheme) }
-								</span>
-							}
-							@dropdown.SubContent() {
-								@dropdown.Item(dropdown.ItemProps{
-									Attributes: templ.Attributes{
-										"onClick": "setTheme('light')",
-									},
-								}) {
-									<span class="flex items-center">
-										@icon.Sun(icon.Props{Class: "size-4 mr-2"})
-										{ i18n.T(ctx, i18n.KeyThemeLight) }
-									</span>
-								}
-								@dropdown.Item(dropdown.ItemProps{
-									Attributes: templ.Attributes{
-										"onclick": "setTheme('dark')",
-									},
-								}) {
-									<span class="flex items-center">
-										@icon.Moon(icon.Props{Class: "size-4 mr-2"})
-										{ i18n.T(ctx, i18n.KeyThemeDark) }
-									</span>
-								}
-								@dropdown.Item(dropdown.ItemProps{
-									Attributes: templ.Attributes{
-										"onclick": "setTheme('auto')",
-									},
-								}) {
-									<span class="flex items-center">
-										@icon.SunMoon(icon.Props{Class: "size-4 mr-2"})
-										{ i18n.T(ctx, i18n.KeyGeneralSystem) }
-									</span>
-								}
-							}
-						}
-						@dropdown.Sub() {
-							@dropdown.SubTrigger() {
-								<span class="flex items-center">
-									@icon.Globe(icon.Props{Class: "size-4 mr-2"})
-									{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
-								</span>
-							}
-							@dropdown.SubContent() {
-								for _, lang := range i18n.AvailableLanguages() {
-									@dropdown.Item(dropdown.ItemProps{
-										Attributes: templ.Attributes{
-											"onclick": "setLanguage('" + lang.Code + "')",
-										},
-									}) {
-										<span class="flex items-center">
-											{ i18n.T(ctx, lang.Name) }
+						@dropdown.Group() {
+							@collapsible.Collapsible() {
+								@collapsible.Trigger() {
+									@dropdown.Item() {
+										<span class="flex items-center justify-between w-full">
+											<span class="flex items-center w-full">
+												@icon.SwatchBook(icon.Props{Class: "size-4 mr-2"})
+												{ i18n.T(ctx, i18n.KeyGeneralTheme) }
+											</span>
+											@icon.ChevronsUpDown(icon.Props{Class: "size-4"})
 										</span>
 									}
 								}
-								@dropdown.Separator()
-								@dropdown.Item(dropdown.ItemProps{
-									Attributes: templ.Attributes{
-										"onclick": "setLanguage('')",
-									},
-								}) {
-									<span class="flex items-center">
-										{ i18n.T(ctx, i18n.KeyGeneralSystem) }
-									</span>
+								@collapsible.Content() {
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onClick": "setTheme('light')",
+										},
+									}) {
+										<span class="flex items-center">
+											@icon.Sun(icon.Props{Class: "size-4 mr-2"})
+											{ i18n.T(ctx, i18n.KeyThemeLight) }
+										</span>
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": "setTheme('dark')",
+										},
+									}) {
+										<span class="flex items-center">
+											@icon.Moon(icon.Props{Class: "size-4 mr-2"})
+											{ i18n.T(ctx, i18n.KeyThemeDark) }
+										</span>
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": "setTheme('auto')",
+										},
+									}) {
+										<span class="flex items-center">
+											@icon.SunMoon(icon.Props{Class: "size-4 mr-2"})
+											{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+										</span>
+									}
+								}
+							}
+						}
+						@dropdown.Separator()
+						@dropdown.Group() {
+							@collapsible.Collapsible() {
+								@collapsible.Trigger() {
+									@dropdown.Item() {
+										<span class="flex items-center justify-between w-full">
+											<span class="flex items-center w-full">
+												@icon.Globe(icon.Props{Class: "size-4 mr-2"})
+												{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
+											</span>
+											@icon.ChevronsUpDown(icon.Props{Class: "size-4"})
+										</span>
+									}
+								}
+								@collapsible.Content() {
+									for _, lang := range i18n.AvailableLanguages() {
+										@dropdown.Item(dropdown.ItemProps{
+											Attributes: templ.Attributes{
+												"onclick": "setLanguage('" + lang.Code + "')",
+											},
+										}) {
+											<span class="flex items-center">
+												{ i18n.T(ctx, lang.Name) }
+											</span>
+										}
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": "setLanguage('')",
+										},
+									}) {
+										<span class="flex items-center">
+											{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+										</span>
+									}
 								}
 							}
 						}
