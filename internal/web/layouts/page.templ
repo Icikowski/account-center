@@ -35,6 +35,9 @@ templ Page(title string, nav *NavigationItem) {
 			<link rel="stylesheet" href="/assets/css/style.css"/>
 			<link rel="icon" href="/assets/img/favicon.png" type="image/png"/>
 			<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"/>
+			@sidebar.Script()
+			@dialog.Script()
+			@collapsible.Script()
 		</head>
 		<body class="h-full">
 			@sidebarWrapper(nav, bd) {
@@ -63,9 +66,6 @@ templ sidebarWrapper(nav *NavigationItem, bd BaseData) {
 			</div>
 		}
 	}
-	@sidebar.Script()
-	@dialog.Script()
-	@collapsible.Script()
 }
 
 templ sidebarContent(nav *NavigationItem, bd BaseData) {
@@ -348,39 +348,92 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 }
 
 templ sidebarBreadcrumbs(nav *NavigationItem) {
-	@breadcrumb.Breadcrumb() {
-		@breadcrumb.List() {
-			@breadcrumb.Item() {
-				@breadcrumb.Link(breadcrumb.LinkProps{
-					Href: "/",
-				}) {
-					@icon.House(icon.Props{Class: "size-4"})
-				}
-			}
-			if nav != nil {
-				{{
-					var path []*NavigationItem
-					if nav.Parent != nil {
-						path = nav.Parent.Breadcrumbs()
-					}
-				}}
-				for _, item := range path {
-					@breadcrumb.Item() {
-						@breadcrumb.Separator()
-						@breadcrumb.Link(breadcrumb.LinkProps{
-							Href: item.FullURL(),
-						}) {
-							{ i18n.T(ctx, item.Key) }
-						}
-					}
-				}
+	{{
+		var path []*NavigationItem
+		if nav != nil && nav.Parent != nil {
+			path = nav.Parent.Breadcrumbs()
+		}
+	}}
+	<div class="md:hidden">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
 				@breadcrumb.Item() {
-					@breadcrumb.Separator()
-					@breadcrumb.Page(breadcrumb.ItemProps{Current: true}) {
-						{ i18n.T(ctx, nav.Key) }
+					@breadcrumb.Link(breadcrumb.LinkProps{
+						Href: "/",
+					}) {
+						@icon.House(icon.Props{Class: "size-4"})
+					}
+				}
+				if nav != nil {
+					if len(path) != 0 {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@dropdown.Dropdown() {
+								@dropdown.Trigger() {
+									@breadcrumb.Link() {
+										@icon.Ellipsis(icon.Props{Class: "size-4"})
+									}
+								}
+								@dropdown.Content(dropdown.ContentProps{
+									// Class: "w-56",
+								}) {
+									for _, item := range path {
+										@dropdown.Item(dropdown.ItemProps{
+											Href: item.FullURL(),
+										}) {
+											{ i18n.T(ctx, item.Key) }
+										}
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Href:     nav.FullURL(),
+										Disabled: true,
+									}) {
+										{ i18n.T(ctx, nav.Key) }
+									}
+								}
+							}
+						}
+					} else {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@breadcrumb.Page(breadcrumb.ItemProps{Current: true}) {
+								{ i18n.T(ctx, nav.Key) }
+							}
+						}
 					}
 				}
 			}
 		}
-	}
+	</div>
+	<div class="hidden md:block">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
+				@breadcrumb.Item() {
+					@breadcrumb.Link(breadcrumb.LinkProps{
+						Href: "/",
+					}) {
+						@icon.House(icon.Props{Class: "size-4"})
+					}
+				}
+				if nav != nil {
+					for _, item := range path {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@breadcrumb.Link(breadcrumb.LinkProps{
+								Href: item.FullURL(),
+							}) {
+								{ i18n.T(ctx, item.Key) }
+							}
+						}
+					}
+					@breadcrumb.Separator()
+					@breadcrumb.Item() {
+						@breadcrumb.Page(breadcrumb.ItemProps{Current: true}) {
+							{ i18n.T(ctx, nav.Key) }
+						}
+					}
+				}
+			}
+		}
+	</div>
 }
