@@ -44,7 +44,7 @@ func NewHandler(
 
 	r := chi.NewRouter()
 	r.Use(
-		middleware.RealIP,
+		xmiddleware.RealIP(trustedProxies),
 		middleware.CleanPath,
 		middleware.Recoverer,
 	)

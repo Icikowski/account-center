@@ -3,8 +3,11 @@ package auth
 import (
 	"net"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
+
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 )
 
 // TrustedProxies controls whether forwarded headers are accepted for a request.
@@ -44,6 +47,42 @@ func (t *TrustedProxies) AllowsForwardedHeaders(r *http.Request) bool {
 		return false
 	}
 
+	return t.contains(ip)
+}
+
+// ClientIP resolves the originating client IP for the request.
+func (t *TrustedProxies) ClientIP(r *http.Request) net.IP {
+	if r == nil {
+		return nil
+	}
+
+	remote := remoteIP(r)
+	if remote == nil {
+		return nil
+	}
+
+	if !t.AllowsForwardedHeaders(r) {
+		return remote
+	}
+
+	if ip := t.forwardedForClientIP(r.Header.Get(consts.HeaderXForwardedFor)); ip != nil {
+		return ip
+	}
+	if ip := headerIP(r.Header.Get(consts.HeaderTrueClientIP)); ip != nil {
+		return ip
+	}
+	if ip := headerIP(r.Header.Get(consts.HeaderXRealIP)); ip != nil {
+		return ip
+	}
+
+	return remote
+}
+
+func (t *TrustedProxies) contains(ip net.IP) bool {
+	if t == nil || ip == nil {
+		return false
+	}
+
 	for _, network := range t.networks {
 		if network.Contains(ip) {
 			return true
@@ -67,6 +106,49 @@ func remoteIP(r *http.Request) net.IP {
 		host = splitHost
 	}
 
+	return net.ParseIP(host)
+}
+
+func (t *TrustedProxies) forwardedForClientIP(value string) net.IP {
+	if t == nil || value == "" {
+		return nil
+	}
+
+	parts := strings.Split(value, ",")
+	if len(parts) == 0 {
+		return nil
+	}
+
+	ips := make([]net.IP, 0, len(parts))
+	for _, part := range parts {
+		ip := headerIP(part)
+		if ip == nil {
+			return nil
+		}
+		ips = append(ips, ip)
+	}
+
+	for _, v := range slices.Backward(ips) {
+		if !t.contains(v) {
+			return v
+		}
+	}
+
+	return ips[0]
+}
+
+func headerIP(value string) net.IP {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	if ip := net.ParseIP(value); ip != nil {
+		return ip
+	}
+	host, _, err := net.SplitHostPort(value)
+	if err != nil {
+		return nil
+	}
 	return net.ParseIP(host)
 }
 
