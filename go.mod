@@ -1,6 +1,6 @@
 module git.sr.ht/~icikowski/account-center
 
-go 1.26.3
+go 1.26.4
 
 tool (
 	github.com/a-h/templ/cmd/templ
@@ -17,16 +17,16 @@ require (
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
-	github.com/redis/go-redis/v9 v9.20.0
+	github.com/redis/go-redis/v9 v9.20.1
 	github.com/rs/zerolog v1.35.1
-	github.com/templui/templui v1.11.2
+	github.com/templui/templui v1.12.0
 	github.com/tiendc/go-deepcopy v1.7.2
 	github.com/yuin/goldmark v1.8.2
 	go.yaml.in/yaml/v3 v3.0.4
-	golang.org/x/net v0.55.0
+	golang.org/x/net v0.56.0
 	golang.org/x/oauth2 v0.36.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/text v0.37.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/text v0.38.0
 	pkg.icikowski.pl/sets v1.1.1
 )
 
@@ -44,7 +44,7 @@ require (
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/mod v0.35.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/tools v0.44.0 // indirect
+	golang.org/x/mod v0.36.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/tools v0.45.0 // indirect
 )
