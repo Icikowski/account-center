@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/zerolog"
 
 	"git.sr.ht/~icikowski/account-center/internal/auth"
 	"git.sr.ht/~icikowski/account-center/internal/consts"
@@ -26,6 +27,7 @@ func NewHandler(
 	sessionCookieName string,
 	trustedProxies *auth.TrustedProxies,
 	evaluator evaluator.Evaluator,
+	log zerolog.Logger,
 ) http.Handler {
 	assetsHandler := assets.NewHandler(consts.RouteAssets)
 	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
@@ -44,8 +46,10 @@ func NewHandler(
 
 	r := chi.NewRouter()
 	r.Use(
+		middleware.RequestID,
 		xmiddleware.RealIP(trustedProxies),
 		middleware.CleanPath,
+		xmiddleware.Logger(log),
 		middleware.Recoverer,
 	)
 

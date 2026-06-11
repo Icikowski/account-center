@@ -92,6 +92,7 @@ func main() {
 		cfg.Auth.SessionCookieName,
 		trustedProxies,
 		evaluator,
+		log,
 	)
 
 	server := &http.Server{
