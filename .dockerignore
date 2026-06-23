@@ -11,5 +11,6 @@ docs
 
 LICENSE
 README.md
+README*.md
 
 **/*_templ.go
