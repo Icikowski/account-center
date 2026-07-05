@@ -16,6 +16,10 @@ tasks:
     cmds:
       - golangci-lint fmt ./...
       - go run github.com/shoenig/go-modtool@latest -w fmt go.mod
+  deps:
+    cmds:
+      - go get -u ./...
+      - go tool templui --force --installed add
   generate:
     cmds:
       - go generate ./...
