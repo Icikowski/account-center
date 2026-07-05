@@ -19,7 +19,7 @@ require (
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/redis/go-redis/v9 v9.21.0
 	github.com/rs/zerolog v1.35.1
-	github.com/templui/templui v1.12.0
+	github.com/templui/templui v1.12.1
 	github.com/tiendc/go-deepcopy v1.7.2
 	github.com/yuin/goldmark v1.8.2
 	go.yaml.in/yaml/v3 v3.0.4

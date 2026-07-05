@@ -141,6 +141,14 @@
       }
     }
 
+    // Makes the slide-in animation work on Safari. The panel starts off-screen
+    // and slides in when we set open=true below. For the slide to show, the
+    // browser must first render the off-screen start position. Chrome/Firefox do
+    // that on their own; Safari skips straight to the end (panel just pops in).
+    // Reading offsetWidth forces the browser to render that start position now,
+    // before the next line moves it. Looks pointless, isn't.
+    void dialog.offsetWidth;
+
     updateState(root, true);
   }
 
@@ -184,6 +192,14 @@
     root.querySelectorAll("[data-tui-dialog]").forEach((dialogRoot) => {
       const dialog = getDialog(dialogRoot);
       if (!dialog) return;
+
+      // Already set up? Skip it. The MutationObserver re-runs this on every DOM
+      // change anywhere on the page; without this guard we'd re-write state on
+      // every existing dialog each time, which with reactive frameworks (e.g.
+      // Datastar patching content inside an open dialog) spirals into an
+      // observer feedback loop. Same skip-on-init pattern the other components
+      // use. See #562.
+      if (dialog.dataset.tuiDialogInitialized === "true") return;
 
       ensureDialog(dialog);
 

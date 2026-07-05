@@ -77,6 +77,8 @@ github.com/templui/templui v1.11.2 h1:iMmuIm/IVaEcGMmYqWww+46+y4ng0xeIZRDj1NBAgK
 github.com/templui/templui v1.11.2/go.mod h1:WWX9O4UebQiSipKaoUQ7Cb0UWtqopzZHtgBu1gtItzU=
 github.com/templui/templui v1.12.0 h1:Q8trI2UUtgfjt2C/Z+kn258CBdswxPQsFMnN/PxfeG4=
 github.com/templui/templui v1.12.0/go.mod h1:WWX9O4UebQiSipKaoUQ7Cb0UWtqopzZHtgBu1gtItzU=
+github.com/templui/templui v1.12.1 h1:dEuRAdfZqg8e0v94+VvnkhllbdnoytlC18k51ymplXY=
+github.com/templui/templui v1.12.1/go.mod h1:WWX9O4UebQiSipKaoUQ7Cb0UWtqopzZHtgBu1gtItzU=
 github.com/tiendc/go-deepcopy v1.7.2 h1:Ut2yYR7W9tWjTQitganoIue4UGxZwCcJy3orjrrIj44=
 github.com/tiendc/go-deepcopy v1.7.2/go.mod h1:4bKjNC2r7boYOkD2IOuZpYjmlDdzjbpTRyCx+goBCJQ=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
