@@ -86,7 +86,7 @@ func (h *uiHandler) splash(w http.ResponseWriter, r *http.Request) {
 func (h *uiHandler) catalog(w http.ResponseWriter, r *http.Request) {
 	session := auth.FromContext(r.Context())
 
-	es := h.evaluator.Evaluate(h.catalogSource, session.User)
+	es := h.evaluator.Evaluate(r.Context(), h.catalogSource, session.User)
 	sort.SliceStable(es, func(i, j int) bool {
 		return es[i].Name < es[j].Name
 	})
@@ -132,7 +132,7 @@ func (h *uiHandler) baseDataMiddleware(next http.Handler) http.Handler {
 		)
 
 		if session != nil {
-			effectiveServices := len(h.evaluator.Evaluate(h.catalogSource, session.User))
+			effectiveServices := len(h.evaluator.Evaluate(ctx, h.catalogSource, session.User))
 			effectiveKnowledgeBaseArticles := 0
 			if h.knowledgeBaseSource != nil {
 				effectiveKnowledgeBaseArticles = len(h.knowledgeBaseSource.Snapshot().Articles)

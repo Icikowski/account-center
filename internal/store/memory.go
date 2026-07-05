@@ -1,4 +1,4 @@
-package auth
+package store
 
 import (
 	"context"
@@ -8,30 +8,39 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/model"
 )
 
+const memoryCleanupInterval = time.Minute
+
 type memoryStore struct {
-	loginStates *memoryValueStore[LoginState]
-	sessions    *memoryValueStore[StoredSession]
+	loginStates *memoryValueStore[model.LoginState]
+	sessions    *memoryValueStore[model.StoredSession]
+	evaluations *memoryValueStore[model.Evaluation]
 }
 
-// NewMemoryStore creates an in-memory auth store and starts periodic cleanup for expired entries.
-func NewMemoryStore(ctx context.Context) SessionStore {
-	loginStates := &memoryValueStore[LoginState]{}
-	sessions := &memoryValueStore[StoredSession]{}
+func newMemoryStore(ctx context.Context) StorageBackend {
+	loginStates := &memoryValueStore[model.LoginState]{}
+	sessions := &memoryValueStore[model.StoredSession]{}
+	evaluations := &memoryValueStore[model.Evaluation]{}
 
 	go loginStates.cleanupLoop(ctx)
 	go sessions.cleanupLoop(ctx)
+	go evaluations.cleanupLoop(ctx)
 
-	return &memoryStore{loginStates: loginStates, sessions: sessions}
+	return &memoryStore{loginStates: loginStates, sessions: sessions, evaluations: evaluations}
 }
 
 // LoginStates implements [SessionStore].
-func (s *memoryStore) LoginStates() model.Store[string, LoginState] {
+func (s *memoryStore) LoginStates() model.Store[string, model.LoginState] {
 	return s.loginStates
 }
 
 // Sessions implements [SessionStore].
-func (s *memoryStore) Sessions() model.Store[string, StoredSession] {
+func (s *memoryStore) Sessions() model.Store[string, model.StoredSession] {
 	return s.sessions
+}
+
+// Evaluations implements [EvaluationStore].
+func (s *memoryStore) Evaluations() model.Store[string, model.Evaluation] {
+	return s.evaluations
 }
 
 type memoryValueStore[T any] struct {
@@ -43,17 +52,17 @@ func (s *memoryValueStore[T]) Get(_ context.Context, key string) (T, error) {
 
 	raw, ok := s.entries.Load(key)
 	if !ok {
-		return zero, errNotFound
+		return zero, ErrNotFound
 	}
 
 	entry, ok := raw.(memoryEntry[T])
 	if !ok {
 		s.entries.Delete(key)
-		return zero, errNotFound
+		return zero, ErrNotFound
 	}
 	if !entry.expires.IsZero() && !time.Now().Before(entry.expires) {
 		s.entries.Delete(key)
-		return zero, errNotFound
+		return zero, ErrNotFound
 	}
 
 	return entry.value, nil
@@ -73,7 +82,7 @@ func (s *memoryValueStore[T]) Delete(_ context.Context, key string) error {
 }
 
 func (s *memoryValueStore[T]) cleanupLoop(ctx context.Context) {
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(memoryCleanupInterval)
 	defer ticker.Stop()
 
 	for {

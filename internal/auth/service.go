@@ -18,6 +18,8 @@ import (
 	"golang.org/x/sync/singleflight"
 
 	"git.sr.ht/~icikowski/account-center/internal/consts"
+	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/store"
 )
 
 const (
@@ -67,13 +69,13 @@ func WithTrustedProxies(trustedProxies *TrustedProxies) Option {
 // Service represents the OIDC authentication service, handling the authorization flow and session management.
 type Service interface {
 	// AuthorizationRequest prepares a new OIDC authorization request and stores its transient login state.
-	AuthorizationRequest(ctx context.Context, r *http.Request, next string) (AuthorizationRequest, error)
+	AuthorizationRequest(ctx context.Context, r *http.Request, next string) (model.AuthorizationRequest, error)
 	// ExchangeCode completes the authorization code flow for the given login state.
-	ExchangeCode(ctx context.Context, loginID, code string) (Session, string, error)
+	ExchangeCode(ctx context.Context, loginID, code string) (model.Session, string, error)
 	// GetSession returns the stored session and refreshes it automatically when it is expired or close to expiry.
-	GetSession(ctx context.Context, sessionID string) (Session, error)
+	GetSession(ctx context.Context, sessionID string) (model.Session, error)
 	// RefreshSession forces a token refresh before returning the updated session.
-	RefreshSession(ctx context.Context, sessionID string) (Session, error)
+	RefreshSession(ctx context.Context, sessionID string) (model.Session, error)
 	// SessionTTL returns the configured session lifetime used for persisted sessions.
 	SessionTTL() time.Duration
 	// Logout removes the stored session and revokes provider-side tokens when supported.
@@ -85,7 +87,7 @@ type service struct {
 	clientID, clientSecret                   string
 	refreshBefore, sessionTTL, loginStateTTL time.Duration
 
-	store        SessionStore
+	store        store.SessionStore
 	provider     *oidc.Provider
 	verifier     *oidc.IDTokenVerifier
 	refreshGroup singleflight.Group
@@ -103,7 +105,7 @@ func NewService(
 	providerURL, clientID, clientSecret string,
 	baseURL string,
 	refreshBefore, sessionTTL, loginStateTTL time.Duration,
-	authStore SessionStore,
+	store store.SessionStore,
 	opts ...Option,
 ) (Service, error) {
 	options := serviceOptions{
@@ -134,7 +136,7 @@ func NewService(
 		refreshBefore: refreshBefore,
 		sessionTTL:    sessionTTL,
 		loginStateTTL: loginStateTTL,
-		store:         authStore,
+		store:         store,
 		provider:      provider,
 		verifier: provider.Verifier(&oidc.Config{
 			ClientID: clientID,
@@ -151,26 +153,26 @@ func (s *service) AuthorizationRequest(
 	ctx context.Context,
 	r *http.Request,
 	next string,
-) (AuthorizationRequest, error) {
+) (model.AuthorizationRequest, error) {
 	redirectURL, err := s.redirectURL(r)
 	if err != nil {
-		return AuthorizationRequest{}, err
+		return model.AuthorizationRequest{}, err
 	}
 
 	loginID, err := s.randomID()
 	if err != nil {
-		return AuthorizationRequest{}, err
+		return model.AuthorizationRequest{}, err
 	}
 	codeVerifier, err := s.randomID()
 	if err != nil {
-		return AuthorizationRequest{}, err
+		return model.AuthorizationRequest{}, err
 	}
 	nonce, err := s.randomID()
 	if err != nil {
-		return AuthorizationRequest{}, err
+		return model.AuthorizationRequest{}, err
 	}
 
-	state := LoginState{
+	state := model.LoginState{
 		ID:           loginID,
 		Next:         next,
 		RedirectURL:  redirectURL,
@@ -179,7 +181,7 @@ func (s *service) AuthorizationRequest(
 		CreatedAt:    time.Now(),
 	}
 	if err := s.store.LoginStates().Set(ctx, loginID, state, s.loginStateTTL); err != nil {
-		return AuthorizationRequest{}, fmt.Errorf("%w: %w", errSaveLoginState, err)
+		return model.AuthorizationRequest{}, fmt.Errorf("%w: %w", errSaveLoginState, err)
 	}
 
 	authURL := s.oauth2Config(redirectURL).AuthCodeURL(
@@ -189,20 +191,20 @@ func (s *service) AuthorizationRequest(
 		oauth2.S256ChallengeOption(codeVerifier),
 	)
 
-	return AuthorizationRequest{
+	return model.AuthorizationRequest{
 		LoginID: loginID,
 		URL:     authURL,
 	}, nil
 }
 
 // ExchangeCode implements [Service].
-func (s *service) ExchangeCode(ctx context.Context, loginID, code string) (Session, string, error) {
+func (s *service) ExchangeCode(ctx context.Context, loginID, code string) (model.Session, string, error) {
 	state, err := s.store.LoginStates().Get(ctx, loginID)
 	if err != nil {
-		return Session{}, "", fmt.Errorf("%w: %w", errLoadLoginState, err)
+		return model.Session{}, "", fmt.Errorf("%w: %w", errLoadLoginState, err)
 	}
 	if err := s.store.LoginStates().Delete(ctx, loginID); err != nil {
-		return Session{}, "", fmt.Errorf("%w: %w", errDeleteLoginState, err)
+		return model.Session{}, "", fmt.Errorf("%w: %w", errDeleteLoginState, err)
 	}
 
 	token, err := s.oauth2Config(state.RedirectURL).Exchange(
@@ -211,26 +213,26 @@ func (s *service) ExchangeCode(ctx context.Context, loginID, code string) (Sessi
 		oauth2.VerifierOption(state.CodeVerifier),
 	)
 	if err != nil {
-		return Session{}, "", fmt.Errorf("%w: %w", errAuthorizationCodeExchangeFailed, err)
+		return model.Session{}, "", fmt.Errorf("%w: %w", errAuthorizationCodeExchangeFailed, err)
 	}
 
 	idToken, claims, err := s.verifyInitialIDToken(ctx, token, state.Nonce)
 	if err != nil {
-		return Session{}, "", err
+		return model.Session{}, "", err
 	}
 
-	user, err := s.resolveUser(ctx, token, claims, User{})
+	user, err := s.resolveUser(ctx, token, claims, model.User{})
 	if err != nil {
-		return Session{}, "", err
+		return model.Session{}, "", err
 	}
 
 	sessionID, err := s.randomID()
 	if err != nil {
-		return Session{}, "", err
+		return model.Session{}, "", err
 	}
 
 	now := time.Now()
-	record := StoredSession{
+	record := model.StoredSession{
 		ID:           sessionID,
 		Subject:      claims.Subject,
 		User:         user,
@@ -243,17 +245,17 @@ func (s *service) ExchangeCode(ctx context.Context, loginID, code string) (Sessi
 		UpdatedAt:    now,
 	}
 	if err := s.store.Sessions().Set(ctx, sessionID, record, s.sessionTTL); err != nil {
-		return Session{}, "", fmt.Errorf("%w: %w", errSaveSession, err)
+		return model.Session{}, "", fmt.Errorf("%w: %w", errSaveSession, err)
 	}
 
 	return record.Session(), state.Next, nil
 }
 
 // GetSession implements [Service].
-func (s *service) GetSession(ctx context.Context, sessionID string) (Session, error) {
+func (s *service) GetSession(ctx context.Context, sessionID string) (model.Session, error) {
 	record, err := s.store.Sessions().Get(ctx, sessionID)
 	if err != nil {
-		return Session{}, fmt.Errorf("%w: %w", errLoadSession, err)
+		return model.Session{}, fmt.Errorf("%w: %w", errLoadSession, err)
 	}
 
 	if !s.shouldRefresh(record.Expiry) {
@@ -265,17 +267,17 @@ func (s *service) GetSession(ctx context.Context, sessionID string) (Session, er
 		if !record.Expiry.IsZero() && record.Expiry.After(time.Now()) {
 			return record.Session(), nil
 		}
-		return Session{}, err
+		return model.Session{}, err
 	}
 
 	return refreshed.Session(), nil
 }
 
 // RefreshSession implements [Service].
-func (s *service) RefreshSession(ctx context.Context, sessionID string) (Session, error) {
+func (s *service) RefreshSession(ctx context.Context, sessionID string) (model.Session, error) {
 	record, err := s.refreshSession(ctx, sessionID, true)
 	if err != nil {
-		return Session{}, err
+		return model.Session{}, err
 	}
 	return record.Session(), nil
 }
@@ -289,7 +291,7 @@ func (s *service) SessionTTL() time.Duration {
 func (s *service) Logout(ctx context.Context, sessionID string) error {
 	record, err := s.store.Sessions().Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, errNotFound) {
+		if errors.Is(err, store.ErrNotFound) {
 			return nil
 		}
 		return fmt.Errorf("%w: %w", errLoadSession, err)
@@ -313,12 +315,12 @@ func (s *service) Logout(ctx context.Context, sessionID string) error {
 	return errors.Join(revokeErr, deleteErr)
 }
 
-func (s *service) refreshSession(ctx context.Context, sessionID string, force bool) (StoredSession, error) {
+func (s *service) refreshSession(ctx context.Context, sessionID string, force bool) (model.StoredSession, error) {
 	result, err, _ := s.refreshGroup.Do(sessionID, func() (any, error) {
 		now := time.Now()
 		record, err := s.store.Sessions().Get(ctx, sessionID)
 		if err != nil {
-			return StoredSession{}, fmt.Errorf("%w: %w", errLoadSession, err)
+			return model.StoredSession{}, fmt.Errorf("%w: %w", errLoadSession, err)
 		}
 		if !force && !s.shouldRefresh(record.Expiry) {
 			return record, nil
@@ -328,9 +330,9 @@ func (s *service) refreshSession(ctx context.Context, sessionID string, force bo
 				return record, nil
 			}
 			if err := s.store.Sessions().Delete(ctx, sessionID); err != nil {
-				return StoredSession{}, fmt.Errorf("%w: %w", errDeleteSession, err)
+				return model.StoredSession{}, fmt.Errorf("%w: %w", errDeleteSession, err)
 			}
-			return StoredSession{}, errReauthenticationRequired
+			return model.StoredSession{}, errReauthenticationRequired
 		}
 
 		tokenSource := s.oauth2Config("").TokenSource(
@@ -348,18 +350,18 @@ func (s *service) refreshSession(ctx context.Context, sessionID string, force bo
 				return record, nil
 			}
 			if err := s.store.Sessions().Delete(ctx, sessionID); err != nil {
-				return StoredSession{}, fmt.Errorf("%w: %w", errDeleteSession, err)
+				return model.StoredSession{}, fmt.Errorf("%w: %w", errDeleteSession, err)
 			}
-			return StoredSession{}, fmt.Errorf("%w: %w", errReauthenticationRequired, err)
+			return model.StoredSession{}, fmt.Errorf("%w: %w", errReauthenticationRequired, err)
 		}
 
 		idToken, claims, err := s.refreshClaims(ctx, token, record)
 		if err != nil {
-			return StoredSession{}, err
+			return model.StoredSession{}, err
 		}
 		user, err := s.resolveUser(ctx, token, claims, record.User)
 		if err != nil {
-			return StoredSession{}, err
+			return model.StoredSession{}, err
 		}
 
 		if token.RefreshToken == "" {
@@ -382,17 +384,17 @@ func (s *service) refreshSession(ctx context.Context, sessionID string, force bo
 		record.UpdatedAt = now
 
 		if err := s.store.Sessions().Set(ctx, sessionID, record, s.sessionTTL); err != nil {
-			return StoredSession{}, fmt.Errorf("%w: %w", errSaveSession, err)
+			return model.StoredSession{}, fmt.Errorf("%w: %w", errSaveSession, err)
 		}
 
 		return record, nil
 	})
 	if err != nil {
-		return StoredSession{}, err
+		return model.StoredSession{}, err
 	}
-	record, ok := result.(StoredSession)
+	record, ok := result.(model.StoredSession)
 	if !ok {
-		return StoredSession{}, errUnexpectedRefreshResultType
+		return model.StoredSession{}, errUnexpectedRefreshResultType
 	}
 	return record, nil
 }
@@ -415,7 +417,7 @@ func (s *service) verifyInitialIDToken(
 func (s *service) refreshClaims(
 	ctx context.Context,
 	token *oauth2.Token,
-	record StoredSession,
+	record model.StoredSession,
 ) (string, profileClaims, error) {
 	raw, claims, err := s.verifyIDToken(ctx, token, false)
 	if err == nil {
@@ -457,8 +459,8 @@ func (s *service) resolveUser(
 	ctx context.Context,
 	token *oauth2.Token,
 	fallback profileClaims,
-	fallbackUser User,
-) (User, error) {
+	fallbackUser model.User,
+) (model.User, error) {
 	user := userFromClaims(fallback, fallbackUser)
 
 	info, err := s.provider.UserInfo(
@@ -474,13 +476,13 @@ func (s *service) resolveUser(
 
 	var claims profileClaims
 	if err := info.Claims(&claims); err != nil {
-		return User{}, fmt.Errorf("%w: %w", errUserInfoClaimsDecode, err)
+		return model.User{}, fmt.Errorf("%w: %w", errUserInfoClaimsDecode, err)
 	}
 
 	return userFromClaims(claims, user), nil
 }
 
-func userFromClaims(claims profileClaims, fallback User) User {
+func userFromClaims(claims profileClaims, fallback model.User) model.User {
 	out := fallback
 	out.Subject = claims.Subject
 	if claims.Name != "" {

@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/knowledgebase"
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
+	"git.sr.ht/~icikowski/account-center/internal/store"
 	"git.sr.ht/~icikowski/account-center/internal/web"
 )
 
@@ -65,9 +66,11 @@ func main() {
 		}
 	}
 
-	authStore := auth.NewMemoryStore(ctx)
+	var storageBackend store.StorageBackend
 	if cfg.Redis.Enabled {
-		authStore = auth.NewRedisStore(cfg.Redis.Client(), cfg.Redis.KeyPrefix)
+		storageBackend = store.NewRedis(cfg.Redis.Client(), cfg.Redis.KeyPrefix)
+	} else {
+		storageBackend = store.NewMemory(ctx)
 	}
 
 	authService, err := auth.NewService(
@@ -75,14 +78,14 @@ func main() {
 		cfg.OIDC.ProviderURL, cfg.OIDC.ClientID, cfg.OIDC.ClientSecret,
 		cfg.Instance.BaseURL,
 		cfg.OIDC.RefreshBefore, cfg.Auth.SessionTTL, cfg.Auth.LoginStateTTL,
-		authStore,
+		storageBackend,
 		auth.WithTrustedProxies(trustedProxies),
 	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create auth service")
 	}
 
-	evaluator := evaluator.New(log)
+	evaluator := evaluator.New(log, storageBackend)
 
 	webHandler := web.NewHandler(
 		cfg.Instance.Name,

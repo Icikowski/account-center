@@ -1,4 +1,4 @@
-package auth
+package store
 
 import (
 	"context"
@@ -16,30 +16,36 @@ import (
 const (
 	redisKindLoginState = "login-state"
 	redisKindSession    = "session"
+	redisKindEvaluation = "evaluation"
 )
 
-// redisStore keeps auth data in Redis.
 type redisStore struct {
-	loginStates *redisValueStore[LoginState]
-	sessions    *redisValueStore[StoredSession]
+	loginStates *redisValueStore[model.LoginState]
+	sessions    *redisValueStore[model.StoredSession]
+	evaluations *redisValueStore[model.Evaluation]
 }
 
-// NewRedisStore creates a Redis-backed auth store.
-func NewRedisStore(client redis.Cmdable, keyPrefix string) SessionStore {
+func newRedisStore(client redis.Cmdable, keyPrefix string) StorageBackend {
 	return &redisStore{
-		loginStates: newRedisValueStore[LoginState](client, keyPrefix, redisKindLoginState),
-		sessions:    newRedisValueStore[StoredSession](client, keyPrefix, redisKindSession),
+		loginStates: newRedisValueStore[model.LoginState](client, keyPrefix, redisKindLoginState),
+		sessions:    newRedisValueStore[model.StoredSession](client, keyPrefix, redisKindSession),
+		evaluations: newRedisValueStore[model.Evaluation](client, keyPrefix, redisKindEvaluation),
 	}
 }
 
 // LoginStates implements [SessionStore].
-func (s *redisStore) LoginStates() model.Store[string, LoginState] {
+func (s *redisStore) LoginStates() model.Store[string, model.LoginState] {
 	return s.loginStates
 }
 
 // Sessions implements [SessionStore].
-func (s *redisStore) Sessions() model.Store[string, StoredSession] {
+func (s *redisStore) Sessions() model.Store[string, model.StoredSession] {
 	return s.sessions
+}
+
+// Evaluations implements [EvaluationStore].
+func (s *redisStore) Evaluations() model.Store[string, model.Evaluation] {
+	return s.evaluations
 }
 
 type redisValueStore[T any] struct {
@@ -61,13 +67,13 @@ func (s *redisValueStore[T]) Get(ctx context.Context, key string) (T, error) {
 
 	payload, err := s.client.Get(ctx, s.key(key)).Bytes()
 	if errors.Is(err, redis.Nil) {
-		return out, errNotFound
+		return out, ErrNotFound
 	}
 	if err != nil {
-		return out, fmt.Errorf("%w '%s': %w", errLoadFailed, key, err)
+		return out, fmt.Errorf("failed to load '%s': %w", key, err)
 	}
 	if err := json.Unmarshal(payload, &out); err != nil {
-		return out, fmt.Errorf("%w '%s': %w", errUnmarshalFailed, key, err)
+		return out, fmt.Errorf("failed to unmarshal '%s': %w", key, err)
 	}
 	return out, nil
 }

@@ -1,39 +1,50 @@
 package evaluator
 
 import (
+	"context"
+	"errors"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
 	"pkg.icikowski.pl/sets"
 
-	"git.sr.ht/~icikowski/account-center/internal/auth"
 	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/store"
 )
+
+const evaluationCacheTTL = 24 * time.Hour
 
 // Evaluator represents a component that can evaluate the effective access levels for services based on a catalog and
 // user information.
 type Evaluator interface {
 	// Evaluate determines the effective access level for available services based on the user's data.
-	Evaluate(catalogProvider model.Reloader[model.Catalog], user auth.User) []model.EffectiveService
+	Evaluate(
+		ctx context.Context,
+		catalogProvider model.Reloader[model.Catalog],
+		user model.User,
+	) []model.EffectiveService
 }
 
 type evaluator struct {
-	cached *sync.Map
-	log    zerolog.Logger
+	store store.EvaluationStore
+	log   zerolog.Logger
 }
 
-// New creates a new [Evaluator] instance with the provided logger.
-func New(log zerolog.Logger) Evaluator {
+// New creates a new [Evaluator] instance with the provided logger and cached evaluations store.
+func New(log zerolog.Logger, store store.EvaluationStore) Evaluator {
 	return &evaluator{
-		cached: new(sync.Map),
-		log:    log,
+		store: store,
+		log:   log,
 	}
 }
 
 // Evaluate implements [Evaluator].
-func (e *evaluator) Evaluate(catalogProvider model.Reloader[model.Catalog], user auth.User) []model.EffectiveService {
+func (e *evaluator) Evaluate(
+	ctx context.Context,
+	catalogProvider model.Reloader[model.Catalog],
+	user model.User,
+) []model.EffectiveService {
 	var (
 		subject          = user.Subject
 		userGroups       = slices.Clone(user.Groups)
@@ -41,13 +52,14 @@ func (e *evaluator) Evaluate(catalogProvider model.Reloader[model.Catalog], user
 		l                = e.log.With().Str("subject", subject).Logger()
 	)
 
-	if stored, ok := e.cached.Load(subject); ok {
+	if stored, err := e.store.Evaluations().Get(ctx, subject); err == nil {
 		l.Debug().Msg("cached evaluation found for subject")
-		cached, _ := stored.(cachedEvaluation)
-		if catalogTimestamp.Equal(cached.catalogTimestamp) && equalGroups(userGroups, cached.groups) {
-			return slices.Clone(cached.effectiveServices)
+		if catalogTimestamp.Equal(stored.CatalogTimestamp) && equalGroups(userGroups, stored.Groups) {
+			return cloneEffectiveServices(stored.EffectiveServices)
 		}
 		l.Debug().Msg("cached evaluation is stale, recalculating")
+	} else if !errors.Is(err, store.ErrNotFound) {
+		l.Warn().Err(err).Msg("failed to load cached evaluation")
 	}
 
 	var (
@@ -85,22 +97,22 @@ func (e *evaluator) Evaluate(catalogProvider model.Reloader[model.Catalog], user
 		})
 	}
 
-	e.cached.Store(subject, cachedEvaluation{
-		catalogTimestamp:  catalogTimestamp,
-		groups:            userGroups,
-		effectiveServices: effective,
-	})
+	if err := e.store.Evaluations().Set(ctx, subject, model.Evaluation{
+		CatalogTimestamp:  catalogTimestamp,
+		Groups:            userGroups,
+		EffectiveServices: cloneEffectiveServices(effective),
+	}, evaluationCacheTTL); err != nil {
+		l.Warn().Err(err).Msg("failed to cache evaluation")
+	}
 	l.Debug().Msg("evaluation completed and cached for subject")
 
-	return slices.Clone(effective)
-}
-
-type cachedEvaluation struct {
-	catalogTimestamp  time.Time
-	groups            []string
-	effectiveServices []model.EffectiveService
+	return cloneEffectiveServices(effective)
 }
 
 func equalGroups(current, stored []string) bool {
 	return sets.Equal(sets.NewFromSlice(current), sets.NewFromSlice(stored))
+}
+
+func cloneEffectiveServices(in []model.EffectiveService) []model.EffectiveService {
+	return slices.Clone(in)
 }
