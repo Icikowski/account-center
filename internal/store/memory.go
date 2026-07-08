@@ -43,6 +43,11 @@ func (s *memoryStore) Evaluations() model.Store[string, model.Evaluation] {
 	return s.evaluations
 }
 
+// Ping implements [StorageBackend].
+func (s *memoryStore) Ping(context.Context) error {
+	return nil
+}
+
 type memoryValueStore[T any] struct {
 	entries sync.Map
 }

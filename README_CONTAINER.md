@@ -31,6 +31,8 @@ Common optional variables:
 - `AC_REDIS_ADDRESS` - Redis address
 - `AC_LOG_LEVEL` - log level, default `info`
 
+The published image includes a Docker healthcheck that probes `/health/live` and `/health/ready`.
+
 ## Minimal Docker example
 
 Docker Hub:

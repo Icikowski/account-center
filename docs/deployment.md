@@ -57,6 +57,7 @@ The published image bakes in:
 
 - `AC_CATALOG_PATH=/data/catalog.yaml`
 - `AC_KB_PATH=/data/kb`
+- a Docker `HEALTHCHECK` that probes `/health/live` and `/health/ready`
 
 So the simplest pattern is to mount your content under `/data`.
 
@@ -129,7 +130,7 @@ AC_OIDC_REFRESH_BEFORE=1m
 ### Notes for Compose users
 
 - The application image is distroless, so do not rely on shell-based troubleshooting inside the container.
-- The application does **not** expose a dedicated health endpoint; use TCP checks or an external HTTP probe against `/`.
+- The image ships with a built-in Docker healthcheck, and the app exposes `/health/live` and `/health/ready` for operators who want to probe them directly.
 - If you disable Redis, remove the Redis service and the `AC_REDIS_*` settings.
 - Add `AC_SERVER_TRUSTED_PROXIES` only when a trusted reverse proxy is actually in front of the app.
 - In this repository, `.env` is a documented workflow file and is loaded by the committed `.envrc`.

@@ -91,6 +91,7 @@ func main() {
 		cfg.Instance.Name,
 		catalogProvider,
 		knowledgeBaseProvider,
+		storageBackend,
 		authService,
 		cfg.Auth.SessionCookieName,
 		trustedProxies,

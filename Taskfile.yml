@@ -43,6 +43,19 @@ tasks:
           -X 'git.sr.ht/~icikowski/account-center/internal/buildinfo.timestamp={{.BUILD_TIMESTAMP}}' \
         " \
         ./cmd/account-center
+  build-healthcheck:
+    env:
+      CGO_ENABLED: "0"
+    cmd: |
+      go build \
+        -o ./bin/healthcheck \
+        -tags netgo \
+        -ldflags "\
+          -s \
+          -w \
+          -extldflags '-static' \
+        " \
+        ./cmd/healthcheck
   run:
     cmd: go run ./cmd/account-center
   test:

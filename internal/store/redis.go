@@ -20,6 +20,7 @@ const (
 )
 
 type redisStore struct {
+	client      redis.Cmdable
 	loginStates *redisValueStore[model.LoginState]
 	sessions    *redisValueStore[model.StoredSession]
 	evaluations *redisValueStore[model.Evaluation]
@@ -27,6 +28,7 @@ type redisStore struct {
 
 func newRedisStore(client redis.Cmdable, keyPrefix string) StorageBackend {
 	return &redisStore{
+		client:      client,
 		loginStates: newRedisValueStore[model.LoginState](client, keyPrefix, redisKindLoginState),
 		sessions:    newRedisValueStore[model.StoredSession](client, keyPrefix, redisKindSession),
 		evaluations: newRedisValueStore[model.Evaluation](client, keyPrefix, redisKindEvaluation),
@@ -46,6 +48,11 @@ func (s *redisStore) Sessions() model.Store[string, model.StoredSession] {
 // Evaluations implements [EvaluationStore].
 func (s *redisStore) Evaluations() model.Store[string, model.Evaluation] {
 	return s.evaluations
+}
+
+// Ping implements [StorageBackend].
+func (s *redisStore) Ping(ctx context.Context) error {
+	return s.client.Ping(ctx).Err()
 }
 
 type redisValueStore[T any] struct {

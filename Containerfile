@@ -18,7 +18,7 @@ RUN go install github.com/mikefarah/yq/v4@latest
 RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 RUN go install github.com/go-task/task/v3/cmd/task@latest
 RUN go mod download -x
-RUN task generate fmt build-static
+RUN task generate fmt build-static build-healthcheck
 
 FROM gcr.io/distroless/static:nonroot
 ARG BUILD_VERSION
@@ -41,4 +41,6 @@ ENV AC_CATALOG_PATH=/data/catalog.yaml
 ENV AC_KB_PATH=/data/kb
 WORKDIR /app
 COPY --from=builder /app/bin/account-center .
+COPY --from=builder /app/bin/healthcheck .
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD ["/app/healthcheck"]
 ENTRYPOINT ["/app/account-center"]

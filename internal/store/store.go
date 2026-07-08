@@ -30,6 +30,10 @@ type EvaluationStore interface {
 type StorageBackend interface {
 	SessionStore
 	EvaluationStore
+
+	// Ping checks the health of the storage backend. It should return an error if the backend is not reachable or not
+	// functioning properly.
+	Ping(ctx context.Context) error
 }
 
 // NewMemory creates an in-memory [StorageBackend] and starts periodic cleanup for expired entries.

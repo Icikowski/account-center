@@ -15,6 +15,8 @@ These are the main operator-relevant routes exposed by the application:
 | Route                   | Purpose                                                          |
 | ----------------------- | ---------------------------------------------------------------- |
 | `/`                     | Public landing page; redirects authenticated users to `/catalog` |
+| `/health/live`          | Process liveness probe                                           |
+| `/health/ready`         | Readiness probe for catalog, KB, and storage backend             |
 | `/login`                | Starts the OIDC authorization flow                               |
 | `/oidc-callback`        | OIDC authorization-code callback endpoint                        |
 | `/refresh`              | Forces a session refresh                                         |

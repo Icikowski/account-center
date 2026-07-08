@@ -13,7 +13,9 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
+	"git.sr.ht/~icikowski/account-center/internal/store"
 	"git.sr.ht/~icikowski/account-center/internal/web/assets"
+	"git.sr.ht/~icikowski/account-center/internal/web/health"
 	"git.sr.ht/~icikowski/account-center/internal/web/ui"
 	"git.sr.ht/~icikowski/account-center/internal/web/webmanifest"
 )
@@ -23,12 +25,14 @@ func NewHandler(
 	instanceName string,
 	catalogSource model.Reloader[model.Catalog],
 	knowledgeBaseSource model.Reloader[model.KnowledgeBase],
+	storageBackend store.StorageBackend,
 	authService auth.Service,
 	sessionCookieName string,
 	trustedProxies *auth.TrustedProxies,
 	evaluator evaluator.Evaluator,
 	log zerolog.Logger,
 ) http.Handler {
+	healthHandler := health.NewHandler(catalogSource, knowledgeBaseSource, storageBackend)
 	assetsHandler := assets.NewHandler(consts.RouteAssets)
 	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
 	uiHandler := ui.NewHandler(instanceName, catalogSource, knowledgeBaseSource, evaluator)
@@ -52,6 +56,8 @@ func NewHandler(
 		xmiddleware.Logger(log),
 		middleware.Recoverer,
 	)
+
+	r.Route(consts.RouteHealth, healthHandler.Bind)
 
 	r.With(
 		xmiddleware.StaticResourcesCacheControl,
