@@ -70,7 +70,11 @@ func main() {
 	var storageBackend store.StorageBackend
 	if cfg.Redis.Enabled {
 		redis.SetLogger(xlog.NewRedisLogger(log))
-		storageBackend = store.NewRedis(cfg.Redis.Client(), cfg.Redis.KeyPrefix)
+		redisClient := cfg.Redis.Client()
+		if err := redisClient.Ping(ctx).Err(); err != nil {
+			log.Fatal().Err(err).Msg("failed to connect to Redis")
+		}
+		storageBackend = store.NewRedis(redisClient, cfg.Redis.KeyPrefix)
 	} else {
 		storageBackend = store.NewMemory(ctx)
 	}
