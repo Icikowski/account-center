@@ -21,6 +21,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 	"git.sr.ht/~icikowski/account-center/internal/store"
 	"git.sr.ht/~icikowski/account-center/internal/web"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -68,6 +69,7 @@ func main() {
 
 	var storageBackend store.StorageBackend
 	if cfg.Redis.Enabled {
+		redis.SetLogger(xlog.NewRedisLogger(log))
 		storageBackend = store.NewRedis(cfg.Redis.Client(), cfg.Redis.KeyPrefix)
 	} else {
 		storageBackend = store.NewMemory(ctx)
