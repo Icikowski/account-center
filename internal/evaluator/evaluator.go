@@ -55,7 +55,7 @@ func (e *evaluator) Evaluate(
 	if stored, err := e.store.Evaluations().Get(ctx, subject); err == nil {
 		l.Debug().Msg("cached evaluation found for subject")
 		if catalogTimestamp.Equal(stored.CatalogTimestamp) && equalGroups(userGroups, stored.Groups) {
-			return cloneEffectiveServices(stored.EffectiveServices)
+			return slices.Clone(stored.EffectiveServices)
 		}
 		l.Debug().Msg("cached evaluation is stale, recalculating")
 	} else if !errors.Is(err, store.ErrNotFound) {
@@ -70,26 +70,10 @@ func (e *evaluator) Evaluate(
 
 	effective := make([]model.EffectiveService, 0, len(services))
 	for _, service := range services {
-		effectiveRoles := make([]model.UserRole, 0, len(service.Roles)+len(globalAccess)+1)
-		for group, role := range service.Roles {
-			if slices.Contains(userGroups, group) {
-				effectiveRoles = append(effectiveRoles, role)
-			}
-		}
-		for group, role := range globalAccess {
-			if slices.Contains(userGroups, group) {
-				effectiveRoles = append(effectiveRoles, role)
-			}
-		}
-		if len(service.Roles) == 0 {
-			effectiveRoles = append(effectiveRoles, model.UserRoleGeneralAccess)
-		}
-
-		if len(effectiveRoles) == 0 {
+		effectiveRole, ok := effectiveRoleForService(userGroups, service, globalAccess)
+		if !ok {
 			continue
 		}
-
-		effectiveRole := model.OrderRoles(effectiveRoles)[0]
 
 		effective = append(effective, model.EffectiveService{
 			Service:       service,
@@ -100,19 +84,49 @@ func (e *evaluator) Evaluate(
 	if err := e.store.Evaluations().Set(ctx, subject, model.Evaluation{
 		CatalogTimestamp:  catalogTimestamp,
 		Groups:            userGroups,
-		EffectiveServices: cloneEffectiveServices(effective),
+		EffectiveServices: slices.Clone(effective),
 	}, evaluationCacheTTL); err != nil {
 		l.Warn().Err(err).Msg("failed to cache evaluation")
 	}
 	l.Debug().Msg("evaluation completed and cached for subject")
 
-	return cloneEffectiveServices(effective)
+	return slices.Clone(effective)
 }
 
 func equalGroups(current, stored []string) bool {
 	return sets.Equal(sets.NewFromSlice(current), sets.NewFromSlice(stored))
 }
 
-func cloneEffectiveServices(in []model.EffectiveService) []model.EffectiveService {
-	return slices.Clone(in)
+func effectiveRoleForService(
+	userGroups []string,
+	service model.Service,
+	globalAccess map[string]model.UserRole,
+) (model.UserRole, bool) {
+	effectiveRoles := matchingRoles(userGroups, service.Roles)
+	effectiveRoles = append(effectiveRoles, matchingRoles(userGroups, globalAccess)...)
+	if len(service.Roles) == 0 {
+		effectiveRoles = append(effectiveRoles, model.UserRoleGeneralAccess)
+	}
+	if len(effectiveRoles) == 0 {
+		return "", false
+	}
+
+	return model.OrderRoles(effectiveRoles)[0], true
+}
+
+func matchingRoles(
+	userGroups []string,
+	roles map[string]model.UserRole,
+) []model.UserRole {
+	if len(roles) == 0 {
+		return nil
+	}
+
+	matched := make([]model.UserRole, 0, len(roles))
+	for group, role := range roles {
+		if slices.Contains(userGroups, group) {
+			matched = append(matched, role)
+		}
+	}
+	return matched
 }

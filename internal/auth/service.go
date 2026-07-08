@@ -574,8 +574,10 @@ func requestBaseURL(r *http.Request, trustedProxies *TrustedProxies) (string, er
 		return "", fmt.Errorf("%w: request is required", errBaseURLParse)
 	}
 
+	allowsForwardedHeaders := trustedProxies.AllowsForwardedHeaders(r)
+
 	scheme := ""
-	if trustedProxies.AllowsForwardedHeaders(r) {
+	if allowsForwardedHeaders {
 		scheme = headerFirstValue(r.Header.Get(consts.HeaderXForwardedProto))
 	}
 	switch {
@@ -587,7 +589,7 @@ func requestBaseURL(r *http.Request, trustedProxies *TrustedProxies) (string, er
 	}
 
 	host := ""
-	if trustedProxies.AllowsForwardedHeaders(r) {
+	if allowsForwardedHeaders {
 		host = headerFirstValue(r.Header.Get(consts.HeaderXForwardedHost))
 	}
 	if host == "" {
