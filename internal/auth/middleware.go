@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/rs/zerolog"
 
 	"git.sr.ht/~icikowski/account-center/internal/consts"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 )
 
 // Middleware defines the interface for the authentication middleware provider.
@@ -88,9 +90,12 @@ func (m *authMiddleware) withSessionContext(
 	r *http.Request,
 	required bool,
 ) (*http.Request, bool) {
+	l := zerolog.Ctx(r.Context())
+
 	sessionID, ok := m.sessionIDFromRequest(r)
 	if !ok {
 		if required {
+			l.Debug().Msg("missing session cookie, redirecting to login")
 			m.redirectToLogin(w, r, m.currentRequestTarget(r))
 			return nil, false
 		}
@@ -101,6 +106,7 @@ func (m *authMiddleware) withSessionContext(
 	if err != nil {
 		m.clearSessionCookie(w)
 		if required {
+			l.Warn().Err(err).Msg("failed to load session, redirecting to login")
 			if errors.Is(err, errNotFound) || errors.Is(err, errReauthenticationRequired) {
 				m.redirectToLogin(w, r, m.currentRequestTarget(r))
 				return nil, false
@@ -117,12 +123,15 @@ func (m *authMiddleware) withSessionContext(
 }
 
 func (m *authMiddleware) handleLogin(w http.ResponseWriter, r *http.Request) {
+	l := zerolog.Ctx(r.Context())
+
 	if sessionID, ok := m.sessionIDFromRequest(r); ok {
 		if _, err := m.svc.GetSession(r.Context(), sessionID); err == nil {
 			m.setSessionCookie(w, r, sessionID)
 			http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 			return
 		}
+		l.Debug().Msg("clearing stale session cookie before login")
 		m.clearSessionCookie(w)
 	}
 
@@ -130,26 +139,33 @@ func (m *authMiddleware) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if next == "" {
 		next = consts.RouteRoot
 	}
+	l.Info().Str(xlog.FieldNext, next).Msg("starting login flow")
 
 	authReq, err := m.svc.AuthorizationRequest(r.Context(), r, next)
 	if err != nil {
+		l.Error().Err(err).Msg("failed to start login flow")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
+	l.Debug().Str(xlog.FieldNext, next).Msg("redirecting to identity provider")
 	http.Redirect(w, r, authReq.URL, http.StatusSeeOther)
 }
 
 func (m *authMiddleware) handleCallback(w http.ResponseWriter, r *http.Request) {
+	l := zerolog.Ctx(r.Context())
+
 	loginID := r.URL.Query().Get(paramState)
 	code := r.URL.Query().Get(paramCode)
 	if loginID == "" || code == "" {
+		l.Warn().Msg("received invalid oidc callback")
 		http.Redirect(w, r, m.loginPath, http.StatusSeeOther)
 		return
 	}
 
 	session, next, err := m.svc.ExchangeCode(r.Context(), loginID, code)
 	if err != nil {
+		l.Error().Err(err).Msg("failed to complete login callback")
 		http.Redirect(w, r, m.loginPath, http.StatusSeeOther)
 		return
 	}
@@ -159,13 +175,17 @@ func (m *authMiddleware) handleCallback(w http.ResponseWriter, r *http.Request) 
 	if redirectTarget == "" {
 		redirectTarget = consts.RouteRoot
 	}
+	l.Debug().Str(xlog.FieldNext, redirectTarget).Msg("completed login flow")
 
 	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
 func (m *authMiddleware) handleRefresh(w http.ResponseWriter, r *http.Request) {
+	l := zerolog.Ctx(r.Context())
+
 	sessionID, ok := m.sessionIDFromRequest(r)
 	if !ok {
+		l.Debug().Msg("refresh requested without session cookie")
 		http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 		return
 	}
@@ -173,6 +193,7 @@ func (m *authMiddleware) handleRefresh(w http.ResponseWriter, r *http.Request) {
 	session, err := m.svc.RefreshSession(r.Context(), sessionID)
 	if err != nil {
 		m.clearSessionCookie(w)
+		l.Warn().Err(err).Msg("failed to refresh session")
 		if errors.Is(err, errNotFound) || errors.Is(err, errReauthenticationRequired) {
 			http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
 			return
@@ -189,13 +210,20 @@ func (m *authMiddleware) handleRefresh(w http.ResponseWriter, r *http.Request) {
 	if redirectTarget == "" {
 		redirectTarget = consts.RouteRoot
 	}
+	l.Debug().Str(xlog.FieldNext, redirectTarget).Msg("refreshed session")
 
 	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
 func (m *authMiddleware) handleLogout(w http.ResponseWriter, r *http.Request) {
+	l := zerolog.Ctx(r.Context())
+
 	if sessionID, ok := m.sessionIDFromRequest(r); ok {
-		_ = m.svc.Logout(r.Context(), sessionID)
+		if err := m.svc.Logout(r.Context(), sessionID); err != nil {
+			l.Error().Err(err).Msg("failed to log out session")
+		} else {
+			l.Debug().Msg("logged out session")
+		}
 	}
 	m.clearSessionCookie(w)
 	http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)

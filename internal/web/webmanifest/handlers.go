@@ -33,12 +33,13 @@ func (h *webManifestHandler) Bind(r chi.Router) {
 
 func (h *webManifestHandler) webManifest(w http.ResponseWriter, r *http.Request) {
 	m := h.generateManifest(r.Context())
+	l := zerolog.Ctx(r.Context())
 
 	w.Header().Set(consts.HeaderContentType, consts.MIMEApplicationManifestJSON)
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(m); err != nil {
-		l := zerolog.Ctx(r.Context())
 		l.Error().Err(err).Msg("failed to encode web manifest")
+		return
 	}
 }
 

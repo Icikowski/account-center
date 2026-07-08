@@ -37,10 +37,10 @@ func main() {
 
 	ver := buildinfo.Get()
 	log.Info().
-		Str("version", ver.Version).
-		Str("commit", ver.GitReference).
-		Time("build_time", ver.BuildTime).
-		Str("go_version", ver.GoVersion).
+		Str(xlog.FieldVersion, ver.Version).
+		Str(xlog.FieldCommit, ver.GitReference).
+		Time(xlog.FieldBuildTime, ver.BuildTime).
+		Str(xlog.FieldGoVersion, ver.GoVersion).
 		Msg("initializing application")
 
 	trustedProxies, err := auth.NewTrustedProxies(cfg.Server.TrustedProxyCIDRs)
@@ -107,7 +107,7 @@ func main() {
 		sctx := context.WithoutCancel(ctx)
 
 		<-ctx.Done()
-		log.Info().Str("cause", context.Cause(ctx).Error()).Msg("shutting down")
+		log.Info().Str(xlog.FieldCause, context.Cause(ctx).Error()).Msg("shutting down")
 
 		sctx, cancel := context.WithTimeout(sctx, 5*time.Second)
 		defer cancel()

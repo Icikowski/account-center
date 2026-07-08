@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xcopy"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 )
 
 type knowledgeBaseWatcher struct {
@@ -143,10 +144,10 @@ func (w *knowledgeBaseWatcher) watch(ctx context.Context, debounce time.Duration
 				if err := w.fetch(); err != nil {
 					w.log.Error().
 						Err(err).
-						Str("path", w.path).
+						Str(xlog.FieldPath, w.path).
 						Msg("failed to reload knowledge base")
 				} else {
-					w.log.Info().Str("path", w.path).Msg("knowledge base reloaded")
+					w.log.Info().Str(xlog.FieldPath, w.path).Msg("knowledge base reloaded")
 				}
 			case event, ok := <-watcher.Events:
 				if !ok {
@@ -165,7 +166,7 @@ func (w *knowledgeBaseWatcher) watch(ctx context.Context, debounce time.Duration
 						); err != nil {
 							w.log.Error().
 								Err(err).
-								Str("path", event.Name).
+								Str(xlog.FieldPath, event.Name).
 								Msg("failed to watch knowledge base directory")
 						}
 					}
@@ -180,7 +181,7 @@ func (w *knowledgeBaseWatcher) watch(ctx context.Context, debounce time.Duration
 				if !ok {
 					return
 				}
-				w.log.Error().Err(err).Str("path", w.path).Msg("knowledge base watcher error")
+				w.log.Error().Err(err).Str(xlog.FieldPath, w.path).Msg("knowledge base watcher error")
 			}
 		}
 	}()

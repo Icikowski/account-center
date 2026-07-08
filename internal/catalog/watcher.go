@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xcopy"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 )
 
 type catalogWatcher struct {
@@ -127,9 +128,9 @@ func (w *catalogWatcher) watch(ctx context.Context, debounce time.Duration) erro
 				}
 
 				if err := w.fetch(); err != nil {
-					w.log.Error().Err(err).Str("path", w.path).Msg("failed to reload catalog")
+					w.log.Error().Err(err).Str(xlog.FieldPath, w.path).Msg("failed to reload catalog")
 				} else {
-					w.log.Info().Str("path", w.path).Msg("catalog reloaded")
+					w.log.Info().Str(xlog.FieldPath, w.path).Msg("catalog reloaded")
 				}
 			case event, ok := <-watcher.Events:
 				if !ok {
@@ -160,7 +161,7 @@ func (w *catalogWatcher) watch(ctx context.Context, debounce time.Duration) erro
 				if !ok {
 					return
 				}
-				w.log.Error().Err(err).Str("path", w.path).Msg("catalog watcher error")
+				w.log.Error().Err(err).Str(xlog.FieldPath, w.path).Msg("catalog watcher error")
 			}
 		}
 	}()

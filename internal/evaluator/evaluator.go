@@ -10,6 +10,7 @@ import (
 	"pkg.icikowski.pl/sets"
 
 	"git.sr.ht/~icikowski/account-center/internal/model"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 	"git.sr.ht/~icikowski/account-center/internal/store"
 )
 
@@ -49,11 +50,11 @@ func (e *evaluator) Evaluate(
 		subject          = user.Subject
 		userGroups       = slices.Clone(user.Groups)
 		catalogTimestamp = catalogProvider.LastUpdate()
-		l                = e.log.With().Str("subject", subject).Logger()
+		l                = e.log.With().Str(xlog.FieldSubject, subject).Logger()
 	)
 
 	if stored, err := e.store.Evaluations().Get(ctx, subject); err == nil {
-		l.Debug().Msg("cached evaluation found for subject")
+		l.Debug().Int(xlog.FieldServices, len(stored.EffectiveServices)).Msg("cached evaluation found for subject")
 		if catalogTimestamp.Equal(stored.CatalogTimestamp) && equalGroups(userGroups, stored.Groups) {
 			return slices.Clone(stored.EffectiveServices)
 		}
@@ -88,7 +89,7 @@ func (e *evaluator) Evaluate(
 	}, evaluationCacheTTL); err != nil {
 		l.Warn().Err(err).Msg("failed to cache evaluation")
 	}
-	l.Debug().Msg("evaluation completed and cached for subject")
+	l.Debug().Int(xlog.FieldServices, len(effective)).Msg("evaluation completed and cached for subject")
 
 	return slices.Clone(effective)
 }
