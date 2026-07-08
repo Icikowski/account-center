@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://git.sr.ht/~icikowski/account-center/blob/main/schemas/catalog.schema.json",
+  "$id": "https://git.sr.ht/~icikowski/account-center/blob/main/schemas/frontmatter.schema.json",
   "title": "Knowledge base article frontmatter",
   "description": "Frontmatter schema for knowledge base articles",
   "type": "object",
