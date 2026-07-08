@@ -14,8 +14,8 @@
   other: Witamy w Centrum kont! Zaloguj się, aby uzyskać dostęp do swoich usług i zasobów.
 - id: about.version
   other: Wersja
-- id: about.commit
-  other: Commit Git
+- id: about.git_reference
+  other: Referencja Git
 - id: about.build_time
   other: Czas kompilacji
 - id: about.go_version

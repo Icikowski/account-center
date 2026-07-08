@@ -4,6 +4,6 @@ const unknown = "unknown"
 
 var (
 	version   = unknown
-	commit    = unknown
+	gitref    = unknown
 	timestamp = unknown
 )

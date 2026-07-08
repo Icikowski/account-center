@@ -1,14 +1,14 @@
 ARG BUILD_VERSION=unknown
-ARG BUILD_COMMIT=unknown
+ARG BUILD_GIT_REF=unknown
 ARG BUILD_TIMESTAMP=unknown
 ARG BUILD_SHORT_REF=unknown
 
 FROM golang:1.26 AS builder
 ARG BUILD_VERSION
-ARG BUILD_COMMIT
+ARG BUILD_GIT_REF
 ARG BUILD_TIMESTAMP
 ENV BUILD_VERSION=${BUILD_VERSION}
-ENV BUILD_COMMIT=${BUILD_COMMIT}
+ENV BUILD_GIT_REF=${BUILD_GIT_REF}
 ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
 WORKDIR /app
 COPY . .
@@ -22,7 +22,7 @@ RUN task generate fmt build-static
 
 FROM gcr.io/distroless/static:nonroot
 ARG BUILD_VERSION
-ARG BUILD_COMMIT
+ARG BUILD_GIT_REF
 ARG BUILD_TIMESTAMP
 ARG BUILD_SHORT_REF
 LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}" \
@@ -31,7 +31,7 @@ LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}" \
       org.opencontainers.image.documentation="https://git.sr.ht/~icikowski/account-center/blob/${BUILD_SHORT_REF}/README_CONTAINER.md" \
       org.opencontainers.image.source="https://git.sr.ht/~icikowski/account-center" \
       org.opencontainers.image.version="${BUILD_VERSION}" \
-      org.opencontainers.image.revision="${BUILD_COMMIT}" \
+      org.opencontainers.image.revision="${BUILD_GIT_REF}" \
       org.opencontainers.image.vendor="Piotr Icikowski" \
       org.opencontainers.image.licenses="GPL-3.0-only" \
       org.opencontainers.image.title="Account Center" \

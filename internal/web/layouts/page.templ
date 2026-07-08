@@ -5,6 +5,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/badge"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/breadcrumb"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/collapsible"
@@ -12,6 +13,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdown"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/table"
 	"strings"
 )
 
@@ -116,18 +118,66 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 							</div>
 						}
 						{{
-							bi := buildinfo.Get()
-							bt := "unknown"
+							var (
+								bi  = buildinfo.Get()
+								bt  = "unknown"
+								bts = "unknown"
+							)
 							if !bi.BuildTime.IsZero() {
-								bt = bi.BuildTime.Format("2006-01-02 15:04:05")
+								bt = bi.BuildTime.Local().Format("2006-01-02 15:04:05 MST")
+								bts = bi.BuildTime.Format("2006-01-02 15:04:05 MST")
 							}
 						}}
 						<div class="space-y-4">
 							<div class="space-y-2 text-sm">
-								<p class="font-semibold">{ i18n.T(ctx, i18n.KeyAboutVersion) }: { bi.Version }</p>
-								<p>{ i18n.T(ctx, i18n.KeyAboutBuildTime) }: { bt }</p>
-								<p>{ i18n.T(ctx, i18n.KeyAboutCommit) }: <code>{ bi.Commit }</code></p>
-								<p>{ i18n.T(ctx, i18n.KeyAboutGoVersion) }: { bi.GoVersion }</p>
+								@table.Table() {
+									@table.Body() {
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutVersion) }
+											}
+											@table.Cell() {
+												@badge.Badge() {
+													{ bi.Version }
+												}
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutBuildTime) }
+											}
+											@table.Cell() {
+												@badge.Badge(badge.Props{Attributes: templ.Attributes{
+													"title": bts,
+												}}) {
+													{ bt }
+												}
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutGitReference) }
+											}
+											@table.Cell() {
+												<a href={ "https://git.sr.ht/~icikowski/account-center/refs/" + bi.GitReference } target="_blank" class="text-inherit no-underline hover:underline">
+													@badge.Badge() {
+														<code>{ bi.GitReference }</code>
+													}
+												</a>
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutGoVersion) }
+											}
+											@table.Cell() {
+												@badge.Badge() {
+													{ bi.GoVersion }
+												}
+											}
+										}
+									}
+								}
 							</div>
 							<div class="space-y-2">
 								@button.Button(button.Props{

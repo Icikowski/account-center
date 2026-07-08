@@ -14,8 +14,8 @@
   other: Welcome to Account Center! Please log in to access your services and resources.
 - id: about.version
   other: Version
-- id: about.commit
-  other: Git commit hash
+- id: about.git_reference
+  other: Git reference
 - id: about.build_time
   other: Build time
 - id: about.go_version

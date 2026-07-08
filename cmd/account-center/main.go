@@ -38,7 +38,7 @@ func main() {
 	ver := buildinfo.Get()
 	log.Info().
 		Str("version", ver.Version).
-		Str("commit", ver.Commit).
+		Str("commit", ver.GitReference).
 		Time("build_time", ver.BuildTime).
 		Str("go_version", ver.GoVersion).
 		Msg("initializing application")
