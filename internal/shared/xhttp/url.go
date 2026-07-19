@@ -1,6 +1,7 @@
 package xhttp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -12,14 +13,32 @@ import (
 
 var errSchemeNotAllowed = errors.New("scheme not allowed")
 
-// URL is a wrapper around [url.URL] that implements YAML marshaling and unmarshaling.
+// URL is a wrapper around [url.URL] that implements JSON & YAML marshaling and unmarshaling.
 type URL struct {
 	url.URL
 }
 
+// MarshalJSON implements [json.Marshaler].
+func (u *URL) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.String())
+}
+
+// UnmarshalJSON implements [json.Unmarshaler].
+func (u *URL) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	if err := u.parse(s); err != nil {
+		return err
+	}
+	return nil
+}
+
 // MarshalYAML implements [yaml.Marshaler].
 func (u *URL) MarshalYAML() (any, error) {
-	return u.String(), nil
+	return yaml.Marshal(u.String())
 }
 
 // UnmarshalYAML implements [yaml.Unmarshaler].
@@ -29,7 +48,14 @@ func (u *URL) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 
-	parsed, err := url.Parse(s)
+	if err := u.parse(s); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *URL) parse(input string) error {
+	parsed, err := url.Parse(input)
 	if err != nil {
 		return err
 	}
@@ -41,3 +67,10 @@ func (u *URL) UnmarshalYAML(value *yaml.Node) error {
 	u.URL = *parsed
 	return nil
 }
+
+var (
+	_ json.Marshaler   = (*URL)(nil)
+	_ json.Unmarshaler = (*URL)(nil)
+	_ yaml.Marshaler   = (*URL)(nil)
+	_ yaml.Unmarshaler = (*URL)(nil)
+)
