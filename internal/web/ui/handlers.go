@@ -56,7 +56,10 @@ func (h *uiHandler) Bind(r chi.Router) {
 	r.HandleFunc(consts.RouteRoot, h.splash)
 	r.HandleFunc(consts.RouteCatalog, h.catalog)
 	if h.knowledgeBaseSource != nil {
-		r.Route(consts.RouteKnowledgeBaseAttachments, knowledgebase.NewAttachmentsHandler(h.knowledgeBaseSource).Bind)
+		r.Route(consts.RouteKnowledgeBaseAttachments, knowledgebase.NewAttachmentsHandler(
+			h.knowledgeBaseSource,
+			xmiddleware.StaticResourcesCacheControl,
+		).Bind)
 		r.Route(consts.RouteKnowledgeBase, knowledgebase.NewArticleHandler(
 			h.knowledgeBaseSource,
 			consts.RouteKnowledgeBase,

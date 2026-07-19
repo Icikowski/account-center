@@ -129,18 +129,33 @@ func (h *articleHandler) article(w http.ResponseWriter, r *http.Request) {
 }
 
 type attachmentsHandler struct {
-	source model.Reloader[model.KnowledgeBase]
+	source     model.Reloader[model.KnowledgeBase]
+	middleware []func(http.Handler) http.Handler
 }
 
 // NewAttachmentsHandler creates a route binder for serving referenced knowledge base assets.
-func NewAttachmentsHandler(source model.Reloader[model.KnowledgeBase]) xhttp.RouteBinder {
+func NewAttachmentsHandler(
+	source model.Reloader[model.KnowledgeBase],
+	middleware ...xhttp.Middleware,
+) xhttp.RouteBinder {
+	middlewareFuncs := make([]func(http.Handler) http.Handler, 0, len(middleware))
+	for _, m := range middleware {
+		if m != nil {
+			middlewareFuncs = append(middlewareFuncs, m)
+		}
+	}
+
 	return &attachmentsHandler{
-		source: source,
+		source:     source,
+		middleware: middlewareFuncs,
 	}
 }
 
 // Bind implements [xhttp.RouteBinder].
 func (h *attachmentsHandler) Bind(r chi.Router) {
+	if len(h.middleware) > 0 {
+		r.Use(h.middleware...)
+	}
 	r.Get("/{revision}/{id}", h.asset)
 }
 

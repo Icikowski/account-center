@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+
 	"git.sr.ht/~icikowski/account-center/internal/auth"
 	"git.sr.ht/~icikowski/account-center/internal/buildinfo"
 	"git.sr.ht/~icikowski/account-center/internal/catalog"
@@ -21,7 +23,6 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 	"git.sr.ht/~icikowski/account-center/internal/store"
 	"git.sr.ht/~icikowski/account-center/internal/web"
-	"github.com/redis/go-redis/v9"
 )
 
 func main() {
