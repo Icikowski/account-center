@@ -7,10 +7,11 @@ import (
 
 	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
 )
 
 // I18n is a middleware that sets up internationalization for the request context.
-func I18n(bundle *goi18n.Bundle) func(http.Handler) http.Handler {
+func I18n(bundle *goi18n.Bundle) xhttp.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			langs := make([]string, 0, 2)

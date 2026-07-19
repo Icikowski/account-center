@@ -6,12 +6,13 @@ import (
 	"net/http"
 
 	"git.sr.ht/~icikowski/account-center/internal/auth"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
 )
 
 type contextKeyClientIP struct{}
 
 // RealIP resolves the client IP from trusted proxy headers and stores it in the request context.
-func RealIP(trustedProxies *auth.TrustedProxies) func(http.Handler) http.Handler {
+func RealIP(trustedProxies *auth.TrustedProxies) xhttp.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			clientIP := trustedProxies.ClientIP(r)

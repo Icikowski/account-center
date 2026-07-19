@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 
+	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xlog"
 )
 
@@ -14,7 +15,7 @@ import (
 // It also logs both the start and end of each request.
 //
 // Logger can be retrieved from the request context in handlers using [zerolog.Ctx].
-func Logger(l zerolog.Logger) func(next http.Handler) http.Handler {
+func Logger(l zerolog.Logger) xhttp.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rl := l.With().
