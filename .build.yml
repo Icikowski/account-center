@@ -48,6 +48,7 @@ tasks:
       local_image="localhost/account-center:${image_tag}"
 
       podman build \
+        --format docker \
         --file Containerfile \
         --build-arg BUILD_VERSION="$build_version" \
         --build-arg BUILD_GIT_REF="$build_git_ref" \
