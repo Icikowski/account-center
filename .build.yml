@@ -48,6 +48,7 @@ tasks:
       local_image="localhost/account-center:${image_tag}"
 
       podman build \
+        --cgroup-manager=cgroupfs \
         --format docker \
         --file Containerfile \
         --build-arg BUILD_VERSION="$build_version" \
