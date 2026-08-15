@@ -2,9 +2,13 @@
 
 **Self-hosted, OIDC-authenticated portal for internal services and knowledge base articles.**
 
-Account Center is a self-hosted account portal for organizations that already use OpenID Connect and want a clean place to send users after login. It combines a role-aware services catalog with an optional knowledge base, so users land on one page that shows **what they can access** and **how to use it**.
+Account Center is a lightweight portal for self-hosted environments that need one place to send users after login. It combines:
 
-It is intentionally small and operator-friendly: configuration lives in environment variables, a YAML catalog file, and an optional directory of Markdown articles. The application validates that input on startup, reloads catalog and knowledge base changes automatically, and can keep sessions in memory or Redis.
+- an OIDC-based login flow,
+- a role-aware internal services catalog,
+- an optional knowledge base rendered from Markdown.
+
+It is designed for operators who want something similar to an Okta-style app dashboard, but fully self-hosted and easy to configure.
 
 | Login                                             | Services catalog                                      |
 | ------------------------------------------------- | ----------------------------------------------------- |

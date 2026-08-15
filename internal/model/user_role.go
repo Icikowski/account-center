@@ -13,8 +13,11 @@ const (
 	UserRoleSuperuser           UserRole = "superuser"
 	UserRoleSystemAdministrator UserRole = "system_administrator"
 	UserRoleAdministrator       UserRole = "administrator"
+	UserRoleOwner               UserRole = "owner"
 	UserRoleRedactor            UserRole = "redactor"
 	UserRoleEditor              UserRole = "editor"
+	UserRoleContributor         UserRole = "contributor"
+	UserRoleMember              UserRole = "member"
 	UserRoleViewer              UserRole = "viewer"
 	UserRoleUser                UserRole = "user"
 	UserRoleGuest               UserRole = "guest"
@@ -24,8 +27,9 @@ const (
 // IsValid checks if the [UserRole] is one of the predefined roles.
 func (r UserRole) IsValid() bool {
 	switch r {
-	case UserRoleSuperuser, UserRoleSystemAdministrator, UserRoleAdministrator, UserRoleRedactor,
-		UserRoleEditor, UserRoleViewer, UserRoleUser, UserRoleGuest, UserRoleGeneralAccess:
+	case UserRoleSuperuser, UserRoleSystemAdministrator, UserRoleAdministrator, UserRoleOwner, UserRoleRedactor,
+		UserRoleEditor, UserRoleContributor, UserRoleMember, UserRoleViewer, UserRoleUser, UserRoleGuest,
+		UserRoleGeneralAccess:
 		return true
 	default:
 		return false
@@ -36,11 +40,14 @@ var roleOrder = map[UserRole]int{
 	UserRoleSuperuser:           0,
 	UserRoleSystemAdministrator: 1,
 	UserRoleAdministrator:       2,
-	UserRoleRedactor:            3,
-	UserRoleEditor:              4,
-	UserRoleViewer:              5,
-	UserRoleUser:                6,
-	UserRoleGuest:               7,
+	UserRoleOwner:               3,
+	UserRoleRedactor:            4,
+	UserRoleEditor:              5,
+	UserRoleContributor:         6,
+	UserRoleMember:              7,
+	UserRoleViewer:              8,
+	UserRoleUser:                9,
+	UserRoleGuest:               10,
 	UserRoleGeneralAccess:       100,
 }
 

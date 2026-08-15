@@ -76,10 +76,16 @@
   other: Administrator systemu
 - id: role.administrator
   other: Administrator
+- id: role.owner
+  other: Właściciel
 - id: role.redactor
   other: Redaktor
 - id: role.editor
   other: Edytor
+- id: role.contributor
+  other: Współpracownik
+- id: role.member
+  other: Członek
 - id: role.viewer
   other: Przeglądający
 - id: role.user

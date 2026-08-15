@@ -7,7 +7,19 @@
     "UserRole": {
       "type": "string",
       "description": "User role for the given service",
-      "enum": ["superuser", "system_administrator", "administrator", "redactor", "editor", "viewer", "user", "guest"]
+      "enum": [
+        "superuser",
+        "system_administrator",
+        "administrator",
+        "owner",
+        "redactor",
+        "editor",
+        "contributor",
+        "member",
+        "viewer",
+        "user",
+        "guest"
+      ]
     },
     "RoleMapping": {
       "type": "object",

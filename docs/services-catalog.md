@@ -83,8 +83,11 @@ Operator-assignable role values are:
 | `superuser`            | Highest level of access             |
 | `system_administrator` | Platform-wide administrative access |
 | `administrator`        | Service admin                       |
+| `owner`                | Top-level service ownership         |
 | `redactor`             | Content-heavy write access          |
 | `editor`               | Standard editing access             |
+| `contributor`          | Limited content contribution        |
+| `member`               | Regular authenticated access        |
 | `viewer`               | Read-only or dashboard access       |
 | `user`                 | Normal user access                  |
 | `guest`                | Lowest explicit access level        |
@@ -110,11 +113,14 @@ From highest to lowest:
 1. `superuser`
 2. `system_administrator`
 3. `administrator`
-4. `redactor`
-5. `editor`
-6. `viewer`
-7. `user`
-8. `guest`
+4. `owner`
+5. `redactor`
+6. `editor`
+7. `contributor`
+8. `member`
+9. `viewer`
+10. `user`
+11. `guest`
 
 The catalog controls **visibility and displayed effective role inside Account Center**. It does not replace authorization inside the downstream service itself.
 
