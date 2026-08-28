@@ -2,40 +2,37 @@
 
 **Self-hosted, OIDC-authenticated portal for internal services and knowledge base articles.**
 
-Account Center is a lightweight portal for self-hosted environments that need one place to send users after login. It combines:
+**Account Center** is a self-hosted OIDC portal for internal services and optional Markdown knowledge base content.
 
-- an OIDC-based login flow,
-- a role-aware internal services catalog,
-- an optional knowledge base rendered from Markdown.
+It serves HTTP only, so place a reverse proxy in front of the container to terminate TLS/SSL.
 
-It is designed for operators who want something similar to an Okta-style app dashboard, but fully self-hosted and easy to configure.
+## Images
 
-## Environment variables
+- `icikowski/account-center`
+- `ghcr.io/icikowski/account-center`
 
-Required:
+## Required environment variables
 
-- `AC_OIDC_PROVIDER_URL` - OIDC issuer / provider URL
-- `AC_OIDC_CLIENT_ID` - OIDC client ID
-- `AC_OIDC_CLIENT_SECRET` - OIDC client secret
+- `AC_OIDC_PROVIDER_URL`
+- `AC_OIDC_CLIENT_ID`
+- `AC_OIDC_CLIENT_SECRET`
 
-Common optional variables:
+Common container settings:
 
-- `AC_INSTANCE_NAME` - display name for the instance
-- `AC_INSTANCE_BASE_URL` - public base URL, recommended behind a reverse proxy
-- `AC_SERVER_PORT` - HTTP listen port, default `8080`
-- `AC_SERVER_TRUSTED_PROXIES` - trusted proxy IPs/CIDRs for forwarded headers
-- `AC_CATALOG_PATH` - path to the services catalog file, default `/data/catalog.yaml`
-- `AC_KB_ENABLED` - enable knowledge base, default `false`
-- `AC_KB_PATH` - path to the knowledge base directory, default `/data/kb`
-- `AC_REDIS_ENABLED` - enable Redis-backed session storage, default `false`
-- `AC_REDIS_ADDRESS` - Redis address
-- `AC_LOG_LEVEL` - log level, default `info`
+- `AC_INSTANCE_NAME`
+- `AC_INSTANCE_BASE_URL`
+- `AC_SERVER_PORT`
+- `AC_SERVER_TRUSTED_PROXIES`
+- `AC_CATALOG_PATH` (`/data/catalog.yaml`)
+- `AC_KB_ENABLED`
+- `AC_KB_PATH` (`/data/kb`)
+- `AC_REDIS_ENABLED`
+- `AC_REDIS_ADDRESS`
+- `AC_LOG_LEVEL`
 
-The published image includes a Docker healthcheck that probes `/health/live` and `/health/ready`.
+The image includes a Docker healthcheck for `/health/live` and `/health/ready`.
 
-## Minimal Docker example
-
-Docker Hub:
+## Docker
 
 ```bash
 docker run -d \
@@ -43,29 +40,13 @@ docker run -d \
   -p 8080:8080 \
   --env-file .env \
   -v "$PWD/catalog.yaml:/data/catalog.yaml:ro" \
+  -v "$PWD/kb:/data/kb:ro" \
   icikowski/account-center:latest
 ```
 
-GitHub Container Registry:
+Omit the `kb` mount if the knowledge base is disabled.
 
-```bash
-docker run -d \
-  --name account-center \
-  -p 8080:8080 \
-  --env-file .env \
-  -v "$PWD/catalog.yaml:/data/catalog.yaml:ro" \
-  ghcr.io/icikowski/account-center:latest
-```
-
-If you enable the knowledge base, also mount:
-
-```bash
--v "$PWD/kb:/data/kb:ro"
-```
-
-## Minimal Docker Compose example
-
-Docker Hub:
+## Docker Compose
 
 ```yaml
 services:
@@ -78,29 +59,5 @@ services:
       - "8080:8080"
     volumes:
       - ./catalog.yaml:/data/catalog.yaml:ro
+      - ./kb:/data/kb:ro
 ```
-
-GitHub Container Registry:
-
-```yaml
-services:
-  account-center:
-    image: ghcr.io/icikowski/account-center:latest
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./catalog.yaml:/data/catalog.yaml:ro
-```
-
-## Documentation
-
-- Project: https://git.sr.ht/~icikowski/account-center
-- Configuration: https://git.sr.ht/~icikowski/account-center/tree/main/item/docs/configuration.md
-- Environment variables: https://git.sr.ht/~icikowski/account-center/tree/main/item/docs/environment-variables.md
-- Deployment: https://git.sr.ht/~icikowski/account-center/tree/main/item/docs/deployment.md
-- OIDC setup: https://git.sr.ht/~icikowski/account-center/tree/main/item/docs/oidc.md
-- Services catalog: https://git.sr.ht/~icikowski/account-center/tree/main/item/docs/services-catalog.md
-- Knowledge base: https://git.sr.ht/~icikowski/account-center/tree/main/item/docs/knowledge-base.md

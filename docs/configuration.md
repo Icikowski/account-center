@@ -1,108 +1,103 @@
 # Configuration overview
 
-Account Center is configured through three inputs:
+**Account Center** reads configuration from three places:
 
-1. **Environment variables** (`AC_*`) for runtime behavior and integration settings.
-2. **A services catalog YAML file** that defines which services exist and how group membership maps to visible roles.
-3. **An optional knowledge base directory** containing Markdown articles and referenced assets.
+1. `AC_*` environment variables for runtime behavior and integrations;
+2. a services catalog YAML file that defines services and access mappings;
+3. a knowledge base directory containing Markdown articles and assets (optionally, if enabled).
 
-The application validates all of this on startup. If required values are missing or content is invalid, it fails fast instead of starting with partial behavior.
+Startup fails fast if required values are missing or invalid.
 
-## Runtime routes
+The application serves HTTP only. Deploy it behind a reverse proxy that terminates TLS/SSL and forwards trusted headers.
 
-These are the main operator-relevant routes exposed by the application:
+## Routes
 
-| Route                   | Purpose                                                          |
-| ----------------------- | ---------------------------------------------------------------- |
-| `/`                     | Public landing page; redirects authenticated users to `/catalog` |
-| `/health/live`          | Process liveness probe                                           |
-| `/health/ready`         | Readiness probe for catalog, KB, and storage backend             |
-| `/login`                | Starts the OIDC authorization flow                               |
-| `/oidc-callback`        | OIDC authorization-code callback endpoint                        |
-| `/refresh`              | Forces a session refresh                                         |
-| `/logout`               | Clears the local session and attempts token revocation           |
-| `/catalog`              | Role-aware services catalog                                      |
-| `/kb`                   | Knowledge base root when enabled                                 |
-| `/kb/attachments/...`   | Served assets referenced from KB articles                        |
-| `/assets/...`           | Static frontend assets                                           |
-| `/manifest.webmanifest` | Web app manifest                                                 |
+| Route                   | Purpose                                                               |
+| ----------------------- | --------------------------------------------------------------------- |
+| `/`                     | Public landing page; authenticated users are redirected to `/catalog` |
+| `/catalog`              | Role-aware services catalog                                           |
+| `/kb`                   | Knowledge base root when enabled                                      |
+| `/kb/attachments/...`   | Assets referenced from KB articles                                    |
+| `/login`                | Starts the OIDC authorization flow                                    |
+| `/oidc-callback`        | OIDC callback endpoint                                                |
+| `/refresh`              | Forces a session refresh                                              |
+| `/logout`               | Clears the local session and attempts token revocation                |
+| `/assets/...`           | Static frontend assets                                                |
+| `/manifest.webmanifest` | Web app manifest                                                      |
+| `/health/live`          | Liveness probe                                                        |
+| `/health/ready`         | Readiness probe for catalog, KB, and storage                          |
 
-## Startup model
+## Startup
 
 At startup the application:
 
-1. Loads and validates environment variables.
-2. Parses trusted proxy CIDRs, if configured.
-3. Loads the catalog and starts a file watcher for it.
-4. Optionally loads the knowledge base and starts a watcher for it.
-5. Initializes session storage in memory or Redis.
-6. Discovers the OIDC provider and starts the HTTP server.
+1. loads and validates environment variables;
+2. parses trusted proxy CIDRs (if configured);
+3. loads the catalog and starts its watcher;
+4. loads the knowledge base and starts its watcher (if configured);
+5. initializes session storage in memory or Redis;
+6. discovers the OIDC provider and starts the HTTP server.
 
-This means the following are required for a successful start:
+Successful startup requires:
 
 - valid OIDC settings,
 - a reachable OIDC provider,
 - a valid catalog file,
-- and, if KB is enabled, a valid knowledge base directory.
+- a valid knowledge base directory (if enabled).
 
 ## Live reload
 
-Both the catalog and the knowledge base support live reload.
+The catalog and knowledge base both support live reload.
 
-- `AC_CATALOG_RELOAD_DEBOUNCE` controls the catalog watcher debounce.
-- `AC_KB_RELOAD_DEBOUNCE` controls the knowledge base watcher debounce.
+- `AC_CATALOG_RELOAD_DEBOUNCE` controls catalog reload debounce.
+- `AC_KB_RELOAD_DEBOUNCE` controls KB reload debounce.
 
-After a catalog reload, service visibility is recalculated automatically on the next request. Existing users do not need a full restart of the app for catalog updates to take effect.
+After a catalog reload, visibility is recalculated on the next request. Users do not need a restart for catalog updates to take effect.
 
 ## Session storage
 
-By default, Account Center stores OIDC login state and user sessions **in memory**. This is enough for:
+By default, login state and sessions are stored in memory. That works well for:
 
-- local development,
-- single-instance setups,
-- short-lived or disposable environments.
+- local development;
+- single-instance deployments;
+- short-lived environments.
 
-Enable Redis when you need:
+Use Redis when you need:
 
-- session persistence across restarts,
-- a cleaner separation of app and state,
-- multiple app instances sharing the same session store.
+- session persistence across restarts;
+- a separate app and state layer;
+- shared sessions across multiple instances.
 
-Redis keys are stored with this shape:
+Redis keys use this shape:
 
 ```text
 {AC_REDIS_KEY_PREFIX}:{kind}:{id}
 ```
 
-Where `kind` is either `login-state` or `session`.
+Where `kind` is `login-state` or `session`.
 
-## Reverse proxies and public URL handling
+## Reverse proxies
 
-Reverse-proxy deployments need special care because OIDC redirect URLs must match exactly.
-
-The safest setup is to configure **both**:
+OIDC redirect URLs must match the public URL exactly, so reverse-proxy deployments should usually set both:
 
 - `AC_INSTANCE_BASE_URL=https://account.example.com`
 - `AC_SERVER_TRUSTED_PROXIES=<CIDR(s) of your reverse proxy>`
 
-Why both matter:
+`AC_INSTANCE_BASE_URL` gives the app a stable public callback URL. `AC_SERVER_TRUSTED_PROXIES` allows trusted forwarded headers to be used when deriving host and scheme.
 
-- `AC_INSTANCE_BASE_URL` gives Account Center a stable public URL for callback generation.
-- `AC_SERVER_TRUSTED_PROXIES` allows the app to trust `X-Forwarded-Host` and `X-Forwarded-Proto` from your proxy.
+If you leave both unset behind reverse proxy, the app may generate internal `http://...` callback URLs and OIDC login will fail.
 
-If you deploy behind Nginx or another reverse proxy and leave both unset, the application may derive `http://...` callback URLs from the internal request instead of the public `https://...` URL, which will break OIDC login.
-
-See [`deployment.md`](deployment.md) and [`oidc.md`](oidc.md) for the full proxy and provider examples.
+See [Deployment](deployment.md) and [OIDC configuration](oidc.md) for examples.
 
 ## Authentication model
 
-Account Center assumes:
+**Account Center** assumes that:
 
-- users authenticate with an OIDC provider,
-- user identity includes `sub`, `name`, `email`, and `groups`,
-- and group membership drives service visibility in the catalog.
+- users authenticate with an OIDC provider;
+- user identity includes `sub`, `name`, `email`, and `groups`;
+- group membership drives service visibility.
 
-The `groups` claim name is **not configurable**. Providers must expose group membership under that exact claim name.
+The `groups` claim name is fixed and not configurable. Providers must expose group membership under that exact claim.
 
 ## Operator-facing files
 

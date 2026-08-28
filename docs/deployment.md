@@ -1,43 +1,46 @@
 # Deployment
 
-Account Center can be deployed:
+**Account Center** can run as:
 
-1. as a standalone binary,
-2. as a container,
-3. as a Docker Compose stack,
-4. behind a reverse proxy such as Nginx.
+1. a standalone binary;
+2. a container;
+3. a Docker Compose stack.
 
-Published container repositories:
+## Published images
 
 - `icikowski/account-center`
 - `ghcr.io/icikowski/account-center`
 
-## Common requirements
+## Reverse proxy for TLS/SSL
+
+**Account Center** does not terminate TLS/SSL itself. Put a reverse proxy (such as `nginx`) in front of it and handle HTTPS there.
+
+## Requirements
 
 Every deployment needs:
 
-- a valid OIDC provider,
-- a non-empty catalog file,
-- environment variables for OIDC,
-- and, if enabled, a knowledge base directory.
+- a valid OIDC provider;
+- a non-empty catalog file;
+- the required OIDC environment variables;
+- a knowledge base directory (if enabled).
 
-Recommended for production:
+For production, also set:
 
-- set `AC_INSTANCE_BASE_URL` to the public URL,
-- set `AC_SERVER_TRUSTED_PROXIES` to your reverse proxy CIDR(s),
-- use Redis if sessions must survive restarts,
-- and store configuration outside the container image.
+- `AC_INSTANCE_BASE_URL` to the public URL;
+- `AC_SERVER_TRUSTED_PROXIES` to trusted reverse proxy CIDRs;
+- Redis if sessions must survive restarts;
+- configuration outside the container image.
 
 ## Standalone binary
 
-Build from source:
+### Build
 
 ```bash
 task generate
 task build-static
 ```
 
-Run it:
+### Run
 
 ```bash
 AC_INSTANCE_BASE_URL="https://account.example.com" \
@@ -51,15 +54,17 @@ AC_OIDC_CLIENT_SECRET="replace-me" \
 ./bin/account-center
 ```
 
+Even in local or bare-binary deployments, keep TLS/SSL termination in a reverse proxy if the app is exposed on the network.
+
 ## Docker
 
-The published image bakes in:
+The published image uses:
 
 - `AC_CATALOG_PATH=/data/catalog.yaml`
 - `AC_KB_PATH=/data/kb`
-- a Docker `HEALTHCHECK` that probes `/health/live` and `/health/ready`
+- a Docker `HEALTHCHECK` for `/health/live` and `/health/ready`
 
-So the simplest pattern is to mount your content under `/data`.
+Mount content under `/data` for the simplest setup:
 
 ```bash
 docker run -d \
@@ -68,12 +73,12 @@ docker run -d \
   --env-file .env \
   -v "$PWD/catalog.yaml:/data/catalog.yaml:ro" \
   -v "$PWD/kb:/data/kb:ro" \
-  ghcr.io/icikowski/account-center:<tag>
+  icikowski/account-center:<tag>
 ```
 
-If the knowledge base is disabled, you can omit the `kb` mount.
+If KB is disabled, omit the `kb` mount.
 
-To use Docker Hub instead:
+Docker Hub image:
 
 ```bash
 docker run -d \
@@ -91,7 +96,7 @@ Minimal Compose example with Redis-backed sessions:
 ```yaml
 services:
   account-center:
-    image: ghcr.io/icikowski/account-center:<tag>
+    image: icikowski/account-center:<tag>
     restart: unless-stopped
     env_file:
       - .env
@@ -118,7 +123,7 @@ services:
     command: ["redis-server", "--save", "", "--appendonly", "no"]
 ```
 
-Example `.env`:
+### Example `.env`
 
 ```dotenv
 AC_OIDC_PROVIDER_URL="https://sso.example.com"
@@ -127,24 +132,24 @@ AC_OIDC_CLIENT_SECRET="replace-me"
 AC_OIDC_REFRESH_BEFORE=1m
 ```
 
-### Notes for Compose users
+### Compose notes
 
-- The application image is distroless, so do not rely on shell-based troubleshooting inside the container.
-- The image ships with a built-in Docker healthcheck, and the app exposes `/health/live` and `/health/ready` for operators who want to probe them directly.
-- If you disable Redis, remove the Redis service and the `AC_REDIS_*` settings.
-- Add `AC_SERVER_TRUSTED_PROXIES` only when a trusted reverse proxy is actually in front of the app.
-- In this repository, `.env` is a documented workflow file and is loaded by the committed `.envrc`.
+- The application image is distroless.
+- The app exposes `/health/live` and `/health/ready`.
+- Remove Redis settings if you do not use Redis.
+- Set `AC_SERVER_TRUSTED_PROXIES` only when a trusted proxy is in front of the app.
+- In this repository, `.env` is a documented workflow file loaded by the committed `.envrc`.
 
 ## Nginx reverse proxy
 
-Recommended environment variables when proxying through Nginx:
+### Recommended environment variables
 
 ```dotenv
 AC_INSTANCE_BASE_URL="https://account.example.com"
 AC_SERVER_TRUSTED_PROXIES="127.0.0.1/32"
 ```
 
-Recommended Nginx site:
+### Example nginx site
 
 ```nginx
 server {
@@ -164,31 +169,31 @@ server {
 }
 ```
 
-### Why this matters for OIDC
+### OIDC note
 
-The OIDC callback must match the public URL exactly:
+The callback must match the public URL exactly:
 
 ```text
 https://account.example.com/oidc-callback
 ```
 
-If the app sits behind a reverse proxy and does not know the public URL, it can generate the wrong callback origin or scheme and the provider will reject the login flow.
+If the app does not know the public URL, it can generate the wrong callback origin or scheme and the provider will reject the login flow.
 
-The safest production approach is:
+#### Recommended production setup
 
-1. set `AC_INSTANCE_BASE_URL` to the public URL,
-2. trust only the proxy IP/CIDR with `AC_SERVER_TRUSTED_PROXIES`,
-3. and register the same callback URL in the OIDC provider.
+1. set `AC_INSTANCE_BASE_URL` to the public URL;
+2. trust only the proxy IP/CIDR with `AC_SERVER_TRUSTED_PROXIES`;
+3. register the same callback URL in the OIDC provider.
 
-## Scaling considerations
+## Scaling
 
-For multiple application instances:
+For multiple instances:
 
-- use Redis-backed sessions,
-- keep the same `AC_REDIS_KEY_PREFIX` across the shared deployment,
-- and ensure all instances use the same OIDC client and public base URL.
+- use Redis-backed sessions;
+- keep the same `AC_REDIS_KEY_PREFIX` across the deployment;
+- ensure every instance uses the same OIDC client and public base URL.
 
-## Related guides
+## See also
 
 - [Environment variables](environment-variables.md)
 - [OIDC configuration](oidc.md)

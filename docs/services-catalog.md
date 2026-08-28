@@ -1,10 +1,10 @@
 # Services catalog
 
-The services catalog is the core data source for Account Center. It defines:
+The services catalog is the core data source for **Account Center**. It defines:
 
 - which services exist,
 - which URL and icon each service uses,
-- and how OIDC groups map to visible roles.
+- how OIDC groups map to visible roles.
 
 The catalog file is required and must contain at least one service.
 
@@ -19,13 +19,13 @@ Override this with `AC_CATALOG_PATH` if needed.
 
 ## Schema reference
 
-The repository includes a reference schema at:
+### Reference schema
 
 ```text
 schemas/catalog.schema.json
 ```
 
-You can use this editor-assistance header in your catalog file:
+### Editor-assistance header
 
 ```yaml
 # yaml-language-server: $schema=https://git.sr.ht/~icikowski/account-center/blob/main/schemas/catalog.schema.json
@@ -54,7 +54,7 @@ services:
 
 In that example:
 
-- members of `platform-admins` receive `system_administrator` on **every** service,
+- members of `platform-admins` receive `system_administrator` on every service,
 - Grafana-specific groups can grant a more specific role,
 - and `Wiki` is visible to every authenticated user because it has no `roles` block.
 
@@ -94,17 +94,17 @@ Operator-assignable role values are:
 
 ### Important note about `general_access`
 
-You may see `general_access` in the codebase, but it is **not** meant to be authored in the catalog. It is assigned automatically when a service has no `roles` section, meaning every authenticated user can see that service in Account Center.
+You may see `general_access` in the codebase, but it is not meant to be authored in the catalog. It is assigned automatically when a service has no `roles` section, meaning every authenticated user can see that service in **Account Center**.
 
 ## How access is evaluated
 
 Account Center evaluates access like this:
 
-1. Read the user's `groups` claim from OIDC.
-2. Match those groups against the service-specific `roles` map.
-3. Match those same groups against `global_access`.
-4. If a service has no `roles`, assign automatic `general_access`.
-5. If multiple roles match, keep the highest role according to the built-in hierarchy.
+1. read the user's `groups` claim from OIDC;
+2. match those groups against the service-specific `roles` map;
+3. match those same groups against `global_access`;
+4. if a service has no `roles`, assign automatic `general_access`;
+5. if multiple roles match, keep the highest role according to the built-in hierarchy.
 
 ### Effective role order
 
@@ -122,7 +122,7 @@ From highest to lowest:
 10. `user`
 11. `guest`
 
-The catalog controls **visibility and displayed effective role inside Account Center**. It does not replace authorization inside the downstream service itself.
+The catalog controls visibility and the displayed effective role inside **Account Center**. It does not replace authorization inside the downstream service itself.
 
 ## Authoring guidance
 
@@ -152,13 +152,13 @@ Use `global_access` for broad platform-wide access only. Put service-specific gr
 
 A practical catalog often uses:
 
-- one `global_access` group for broad administrative access,
-- service-specific user groups,
-- and different role levels for tools like Grafana.
+- one `global_access` group for broad administrative access;
+- service-specific user groups;
+- different role levels for tools like Grafana.
 
-That is a good structure to follow when you want one portal to aggregate several unrelated services without duplicating access logic in the portal itself.
+That is a good structure when you want one portal to aggregate several unrelated services without duplicating access logic in the portal itself.
 
-## Related guides
+## See also
 
 - [OIDC configuration](oidc.md)
 - [Knowledge base](knowledge-base.md)

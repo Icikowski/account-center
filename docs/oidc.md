@@ -1,6 +1,6 @@
 # OIDC configuration
 
-Account Center uses the OIDC authorization-code flow with refresh tokens.
+**Account Center** uses the OIDC authorization-code flow with refresh tokens.
 
 ## What the application expects
 
@@ -12,13 +12,13 @@ The callback path is fixed:
 /oidc-callback
 ```
 
-So a production redirect URI looks like:
+### Production redirect URI
 
 ```text
 https://account.example.com/oidc-callback
 ```
 
-For local development:
+### Local development
 
 ```text
 http://localhost:8080/oidc-callback
@@ -26,7 +26,7 @@ http://localhost:8080/oidc-callback
 
 ### Required scopes
 
-Account Center requests these scopes:
+**Account Center** requests following scopes:
 
 - `openid`
 - `profile`
@@ -36,13 +36,11 @@ Account Center requests these scopes:
 
 All five matter:
 
-- `profile` and `email` provide user identity data for the UI,
-- `groups` drives catalog access evaluation,
+- `profile` and `email` provide user identity data for the UI;
+- `groups` drives catalog access evaluation;
 - `offline_access` enables refresh tokens.
 
 ### Required claims
-
-The application expects these user attributes:
 
 | Claim    | Why it matters                                  |
 | -------- | ----------------------------------------------- |
@@ -51,7 +49,7 @@ The application expects these user attributes:
 | `email`  | Displayed in the UI                             |
 | `groups` | Determines visible services and effective roles |
 
-The `groups` claim name is **hard-coded** and not configurable. It should be a JSON array of strings.
+The `groups` claim name is fixed and not configurable. It should be a JSON array of strings.
 
 ## Required environment variables
 
@@ -66,12 +64,14 @@ For reverse-proxy deployments, also set:
 
 ```dotenv
 AC_INSTANCE_BASE_URL="https://account.example.com"
-AC_SERVER_TRUSTED_PROXIES="127.0.0.1/32"
+AC_SERVER_TRUSTED_PROXIES="<your proxy CIRD>,127.0.0.1/32"
 ```
+
+Use a reverse proxy to terminate TLS/SSL before requests reach **Account Center**.
 
 ## Sanitized Authelia example
 
-This example follows the expected client shape for Account Center and uses sanitized values with the correct callback path.
+This example uses the callback path expected by **Account Center**.
 
 ```yaml
 identity_providers:
@@ -101,25 +101,25 @@ identity_providers:
 
 ## Validation checklist
 
-Before blaming the app, verify all of the following:
+Before looking elsewhere, verify if:
 
-1. The provider URL is correct and reachable from Account Center.
-2. The client ID and secret match the registered OIDC client.
-3. The redirect URI uses `/oidc-callback`.
-4. The provider returns a `groups` claim.
-5. `offline_access` is enabled if you expect refresh-token behavior.
-6. The public URL seen by the provider matches `AC_INSTANCE_BASE_URL`.
+1. the provider URL is correct and reachable from Account Center;
+2. the client ID and secret match the registered OIDC client;
+3. the redirect URI uses `/oidc-callback`;
+4. the provider returns a `groups` claim;
+5. `offline_access` is enabled if you expect refresh-token behavior;
+6. the public URL seen by the provider matches `AC_INSTANCE_BASE_URL`.
 
 ## Common failure modes
 
-| Symptom                                   | Likely cause                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------- |
-| Redirect mismatch at login                | Wrong callback URI, wrong scheme, or missing `AC_INSTANCE_BASE_URL` |
-| User logs in but sees no services         | Missing or empty `groups` claim, or no matching catalog groups      |
-| Sessions do not refresh                   | `offline_access` missing or provider not issuing refresh tokens     |
-| Works on localhost but fails behind Nginx | Missing trusted proxy configuration or wrong public base URL        |
+| Symptom                                   | Likely cause                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| Redirect mismatch at login                | Wrong callback URI, wrong scheme or missing `AC_INSTANCE_BASE_URL` |
+| User logs in but sees no services         | Missing or empty `groups` claim or no matching catalog groups      |
+| Sessions do not refresh                   | `offline_access` missing or provider not issuing refresh tokens    |
+| Works on localhost but fails behind Nginx | Missing trusted proxy configuration or wrong public base URL       |
 
-## Related guides
+## See also
 
 - [Configuration overview](configuration.md)
 - [Environment variables](environment-variables.md)

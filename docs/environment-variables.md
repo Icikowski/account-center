@@ -2,14 +2,14 @@
 
 All runtime configuration is provided through `AC_*` environment variables.
 
-Durations use Go-style duration syntax such as `500ms`, `10m`, `24h`.
+Durations use Go-style syntax such as `500ms`, `10m`, and `24h`.
 
 ## Instance
 
-| Variable               | Default | Required | Purpose                                                                                        |
-| ---------------------- | ------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `AC_INSTANCE_NAME`     | empty   | No       | Optional instance label used in titles and UI context                                          |
-| `AC_INSTANCE_BASE_URL` | empty   | No       | Public base URL used for OIDC callback generation; strongly recommended behind a reverse proxy |
+| Variable               | Default | Required | Purpose                                                                                                   |
+| ---------------------- | ------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `AC_INSTANCE_NAME`     | empty   | No       | Optional label used in titles and UI context                                                              |
+| `AC_INSTANCE_BASE_URL` | empty   | No       | Public base URL used for OIDC callback generation; required when TLS/SSL is terminated by a reverse proxy |
 
 ## Server
 
@@ -23,10 +23,11 @@ Durations use Go-style duration syntax such as `500ms`, `10m`, `24h`.
 
 Use this only for addresses you fully trust, such as:
 
-- `127.0.0.1/32` for a local reverse proxy
-- `10.0.0.0/8` for an internal proxy network
+- `127.0.0.1/32` for a local reverse proxy;
+- `10.0.0.0/8` for an internal proxy network;
+- `172.17.0.0/16` for a Docker network.
 
-If it is empty, forwarded headers are ignored.
+If empty, forwarded headers are ignored.
 
 ## Services catalog
 
@@ -35,7 +36,7 @@ If it is empty, forwarded headers are ignored.
 | `AC_CATALOG_PATH`            | `./catalog.yaml` | No       | Path to the services catalog YAML file         |
 | `AC_CATALOG_RELOAD_DEBOUNCE` | `500ms`          | No       | Debounce for live reload after catalog changes |
 
-The catalog file must exist, be valid YAML, and contain at least one service.
+The catalog file must exist, be valid YAML and contain at least one service.
 
 ## Knowledge base
 
@@ -77,7 +78,7 @@ These values are required for the application to start.
 | `AC_REDIS_DATABASE`   | `0`              | No           | Redis database number                     |
 | `AC_REDIS_KEY_PREFIX` | `account-center` | When enabled | Prefix for stored Redis keys              |
 
-If Redis is disabled, Account Center falls back to in-memory storage.
+If Redis is disabled, **Account Center** uses in-memory storage.
 
 ## Logging
 
@@ -90,17 +91,14 @@ Pretty logging is useful during development but adds overhead.
 
 ## Container image overrides
 
-The application defaults above are the **binary defaults**. The published container image also sets:
+The binary defaults above are not the same as the published container image defaults:
 
 | Variable          | Image value          |
 | ----------------- | -------------------- |
 | `AC_CATALOG_PATH` | `/data/catalog.yaml` |
 | `AC_KB_PATH`      | `/data/kb`           |
 
-That means container deployments should either:
-
-1. mount their content under `/data`, or
-2. override those two variables explicitly.
+Container deployments should either mount content under `/data` or override those two variables explicitly.
 
 ## Minimal examples
 
@@ -128,6 +126,8 @@ AC_OIDC_CLIENT_SECRET="replace-me"
 AC_INSTANCE_NAME="Example Inc."
 AC_INSTANCE_BASE_URL="https://account.example.com"
 
+AC_SERVER_TRUSTED_PROXIES="172.17.0.0/16,127.0.0.1/32"
+
 AC_OIDC_PROVIDER_URL="https://sso.example.com"
 AC_OIDC_CLIENT_ID="account-center"
 AC_OIDC_CLIENT_SECRET="replace-me"
@@ -135,9 +135,9 @@ AC_OIDC_CLIENT_SECRET="replace-me"
 AC_KB_ENABLED=true
 ```
 
-Add `AC_SERVER_TRUSTED_PROXIES` when the container sits behind a trusted reverse proxy and you want forwarded headers to influence public-URL handling.
+Add `AC_SERVER_TRUSTED_PROXIES` when the container sits behind a trusted reverse proxy and forwarded headers should affect public URL handling. The app itself does not serve TLS.
 
-See also:
+## See also
 
 - [Configuration overview](configuration.md)
 - [Deployment](deployment.md)
