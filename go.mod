@@ -1,6 +1,6 @@
 module git.sr.ht/~icikowski/account-center
 
-go 1.26.6
+go 1.27.0
 
 tool (
 	github.com/a-h/templ/cmd/templ
@@ -15,11 +15,11 @@ require (
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/coreos/go-oidc/v3 v3.20.0
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/go-chi/chi/v5 v5.3.1
+	github.com/go-chi/chi/v5 v5.3.2
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/rs/zerolog v1.35.1
-	github.com/templui/templui v1.13.0
+	github.com/templui/templui v1.13.1
 	github.com/tiendc/go-deepcopy v1.7.2
 	github.com/yuin/goldmark v1.8.5
 	go.yaml.in/yaml/v3 v3.0.5
