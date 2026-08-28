@@ -123,7 +123,7 @@ See [`docs/deployment.md`](docs/deployment.md) for complete examples.
 
 ## License
 
-Licensed under the GNU GPL v3. See [`LICENSE`](LICENSE).
+Licensed under the GNU AGPL v3. See [`LICENSE`](LICENSE).
 
 ## Disclaimer
 
