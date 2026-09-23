@@ -62,8 +62,9 @@ func (c Config) Validate() error {
 
 // InstanceConfig holds the configuration for the instance.
 type InstanceConfig struct {
-	Name    string `env:"NAME"`
-	BaseURL string `env:"BASE_URL"`
+	Name        string `env:"NAME"`
+	BaseURL     string `env:"BASE_URL"`
+	UseGravatar bool   `env:"USE_GRAVATAR" envDefault:"true"`
 }
 
 // Validate checks if the [InstanceConfig] is valid.

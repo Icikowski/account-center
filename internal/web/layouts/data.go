@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"net/url"
 	"strings"
+
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 )
 
 // BaseData represents the base data structure that is passed to all templates in the application.
@@ -23,22 +25,31 @@ type Counters struct {
 
 // User hold information about the currently logged in user, such as their full name and email address.
 type User struct {
-	FullName string
-	Email    string
-	Picture  string
+	FullName    string
+	Email       string
+	Picture     string
+	UseGravatar bool
 }
 
-// ProfilePictureURL generates a Gravatar URL for the user based on their e-mail address.
+// ProfilePictureURL returns the best available avatar URL for the user.
+// It prefers the OIDC picture claim, then Gravatar when enabled, then a local fallback image.
 func (u *User) ProfilePictureURL() string {
-	if u != nil && u.Picture != "" {
-		return u.Picture
+	if u == nil {
+		return consts.RouteFallbackProfilePicture
 	}
+
+	if u.Picture != "" {
+		return u.Picture
+	} else if !u.UseGravatar {
+		return consts.RouteFallbackProfilePicture
+	}
+
 	return u.gravatarURL()
 }
 
 func (u *User) gravatarURL() string {
 	emailHash := "000000000000000000000000000000000000000000000000000000"
-	if u != nil && u.Email != "" {
+	if u.Email != "" {
 		hasher := sha256.Sum256([]byte(strings.TrimSpace(u.Email)))
 		emailHash = hex.EncodeToString(hasher[:])
 	}
@@ -46,7 +57,7 @@ func (u *User) gravatarURL() string {
 	values := url.Values{}
 	values.Add("size", "256")
 	values.Add("rating", "pg")
-	if u != nil && u.FullName != "" {
+	if u.FullName != "" {
 		values.Add("default", "initials")
 		values.Add("name", u.FullName)
 	} else {

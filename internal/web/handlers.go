@@ -23,6 +23,7 @@ import (
 // NewHandler creates a new HTTP handler for the application, setting up routes for static assets and the UI.
 func NewHandler(
 	instanceName string,
+	useGravatar bool,
 	catalogSource model.Reloader[model.Catalog],
 	knowledgeBaseSource model.Reloader[model.KnowledgeBase],
 	storageBackend store.StorageBackend,
@@ -35,7 +36,7 @@ func NewHandler(
 	healthHandler := health.NewHandler(catalogSource, knowledgeBaseSource, storageBackend)
 	assetsHandler := assets.NewHandler(consts.RouteAssets)
 	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
-	uiHandler := ui.NewHandler(instanceName, catalogSource, knowledgeBaseSource, evaluator)
+	uiHandler := ui.NewHandler(instanceName, useGravatar, catalogSource, knowledgeBaseSource, evaluator)
 
 	authMiddleware := auth.NewMiddleware(
 		authService,

@@ -259,7 +259,7 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 						}) {
 							@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
 								@avatar.Image(avatar.ImageProps{
-									Src: bd.User.GravatarURL(),
+									Src: bd.User.ProfilePictureURL(),
 								})
 							}
 							<div class="grid flex-1 text-left text-sm leading-tight">

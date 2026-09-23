@@ -6,10 +6,11 @@ Durations use Go-style syntax such as `500ms`, `10m`, and `24h`.
 
 ## Instance
 
-| Variable               | Default | Required | Purpose                                                                                                   |
-| ---------------------- | ------- | -------- | --------------------------------------------------------------------------------------------------------- |
-| `AC_INSTANCE_NAME`     | empty   | No       | Optional label used in titles and UI context                                                              |
-| `AC_INSTANCE_BASE_URL` | empty   | No       | Public base URL used for OIDC callback generation; required when TLS/SSL is terminated by a reverse proxy |
+| Variable                   | Default | Required | Purpose                                                                                                   |
+| -------------------------- | ------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `AC_INSTANCE_NAME`         | empty   | No       | Optional label used in titles and UI context                                                              |
+| `AC_INSTANCE_BASE_URL`     | empty   | No       | Public base URL used for OIDC callback generation; required when TLS/SSL is terminated by a reverse proxy |
+| `AC_INSTANCE_USE_GRAVATAR` | `true`  | No       | Enables Gravatar as the fallback avatar source if OIDC doesn't provide `picture` claim                    |
 
 ## Server
 

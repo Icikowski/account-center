@@ -57,7 +57,7 @@ The `groups` claim name is fixed and not configurable. It should be a JSON array
 | --------- | ------------------------------------------------ |
 | `picture` | Used as the user's profile avatar when present   |
 
-If `picture` is missing, Account Center falls back to the existing Gravatar-based avatar URL.
+If `picture` is missing, Account Center falls back to Gravatar when enabled; otherwise it uses the bundled local avatar image.
 
 ## Required environment variables
 

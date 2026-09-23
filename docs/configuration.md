@@ -94,10 +94,11 @@ See [Deployment](deployment.md) and [OIDC configuration](oidc.md) for examples.
 **Account Center** assumes that:
 
 - users authenticate with an OIDC provider;
-- user identity includes `sub`, `name`, `email`, and `groups`;
+- user identity includes `sub`, `name`, `email`, `picture`, and `groups`;
 - group membership drives service visibility.
 
 The `groups` claim name is fixed and not configurable. Providers must expose group membership under that exact claim.
+The `picture` claim is optional and is used for the user's avatar when present. If it is missing, the instance falls back to Gravatar unless Gravatar is disabled at instance configuration level, in which case a bundled local avatar image is used.
 
 ## Operator-facing files
 

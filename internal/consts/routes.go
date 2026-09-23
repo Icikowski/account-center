@@ -20,4 +20,6 @@ const (
 	RouteCatalog                  = "/catalog"
 	RouteKnowledgeBase            = "/kb"
 	RouteKnowledgeBaseAttachments = "/kb/attachments"
+
+	RouteFallbackProfilePicture = "/assets/img/user.jpg"
 )
