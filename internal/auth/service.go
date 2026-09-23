@@ -491,6 +491,9 @@ func userFromClaims(claims profileClaims, fallback model.User) model.User {
 	if claims.Email != "" {
 		out.Email = claims.Email
 	}
+	if claims.Picture != "" {
+		out.Picture = claims.Picture
+	}
 	if len(claims.Groups) > 0 {
 		out.Groups = append([]string(nil), claims.Groups...)
 	} else if out.Groups != nil {

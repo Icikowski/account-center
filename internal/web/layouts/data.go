@@ -25,10 +25,18 @@ type Counters struct {
 type User struct {
 	FullName string
 	Email    string
+	Picture  string
 }
 
-// GravatarURL generates a Gravatar URL for the user based on their e-mail address.
-func (u *User) GravatarURL() string {
+// ProfilePictureURL generates a Gravatar URL for the user based on their e-mail address.
+func (u *User) ProfilePictureURL() string {
+	if u != nil && u.Picture != "" {
+		return u.Picture
+	}
+	return u.gravatarURL()
+}
+
+func (u *User) gravatarURL() string {
 	emailHash := "000000000000000000000000000000000000000000000000000000"
 	if u != nil && u.Email != "" {
 		hasher := sha256.Sum256([]byte(strings.TrimSpace(u.Email)))

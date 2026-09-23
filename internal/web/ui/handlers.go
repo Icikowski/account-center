@@ -148,6 +148,7 @@ func (h *uiHandler) baseDataMiddleware(next http.Handler) http.Handler {
 			baseData.User = &layouts.User{
 				FullName: session.User.Name,
 				Email:    session.User.Email,
+				Picture:  session.User.Picture,
 			}
 		}
 

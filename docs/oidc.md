@@ -51,6 +51,14 @@ All five matter:
 
 The `groups` claim name is fixed and not configurable. It should be a JSON array of strings.
 
+### Optional claims
+
+| Claim     | Why it matters                                   |
+| --------- | ------------------------------------------------ |
+| `picture` | Used as the user's profile avatar when present   |
+
+If `picture` is missing, Account Center falls back to the existing Gravatar-based avatar URL.
+
 ## Required environment variables
 
 ```dotenv

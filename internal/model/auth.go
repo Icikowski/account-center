@@ -50,6 +50,7 @@ type Session struct {
 type User struct {
 	Subject string   `json:"sub"`
 	Name    string   `json:"name"`
+	Picture string   `json:"picture"`
 	Email   string   `json:"email"`
 	Groups  []string `json:"groups"`
 }

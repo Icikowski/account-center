@@ -48,6 +48,7 @@ type profileClaims struct {
 	Subject string   `json:"sub"`
 	Name    string   `json:"name"`
 	Email   string   `json:"email"`
+	Picture string   `json:"picture"`
 	Groups  []string `json:"groups"`
 	Nonce   string   `json:"nonce"`
 }
