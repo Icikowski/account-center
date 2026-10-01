@@ -32,6 +32,7 @@ func NewHandler(
 	}
 }
 
+// Bind implements [xhttp.RouteBinder].
 func (h *healthHandler) Bind(r chi.Router) {
 	r.HandleFunc(consts.RouteLive, h.live)
 	r.HandleFunc(consts.RouteReady, h.ready)
