@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/store"
 	"git.sr.ht/~icikowski/account-center/internal/web/assets"
 	"git.sr.ht/~icikowski/account-center/internal/web/health"
+	"git.sr.ht/~icikowski/account-center/internal/web/robots"
 	"git.sr.ht/~icikowski/account-center/internal/web/ui"
 	"git.sr.ht/~icikowski/account-center/internal/web/webmanifest"
 )
@@ -36,6 +37,7 @@ func NewHandler(
 	healthHandler := health.NewHandler(catalogSource, knowledgeBaseSource, storageBackend)
 	assetsHandler := assets.NewHandler(consts.RouteAssets)
 	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
+	robotsHandler := robots.NewHandler()
 	uiHandler := ui.NewHandler(instanceName, useGravatar, catalogSource, knowledgeBaseSource, evaluator)
 
 	authMiddleware := auth.NewMiddleware(
@@ -67,6 +69,8 @@ func NewHandler(
 	r.With(
 		xmiddleware.I18n(i18n.NewBundle()),
 	).Route(consts.RouteWebManifest, webManifestHandler.Bind)
+
+	r.Route(consts.RouteRobots, robotsHandler.Bind)
 
 	r.With(
 		authMiddleware.Middleware,

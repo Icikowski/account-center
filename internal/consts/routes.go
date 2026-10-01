@@ -16,6 +16,7 @@ const (
 	RouteAssets = "/assets"
 
 	RouteWebManifest = "/manifest.webmanifest"
+	RouteRobots      = "/robots.txt"
 
 	RouteCatalog                  = "/catalog"
 	RouteKnowledgeBase            = "/kb"
