@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
 	"git.sr.ht/~icikowski/account-center/internal/consts"
@@ -69,7 +70,7 @@ func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if m.isPublicPath(r.URL.Path) {
+		if !m.hasRegisteredHandler(r) || m.isPublicPath(r.URL.Path) {
 			if rr, ok := m.withSessionContext(w, r, false); ok {
 				r = rr
 			}
@@ -298,6 +299,14 @@ func (m *authMiddleware) isPublicPath(path string) bool {
 		}
 	}
 	return false
+}
+
+func (m *authMiddleware) hasRegisteredHandler(r *http.Request) bool {
+	rctx := chi.RouteContext(r.Context())
+	probe := chi.NewRouteContext()
+	probe.Routes = rctx.Routes
+
+	return probe.Routes.Match(probe, r.Method, r.URL.Path)
 }
 
 func requestIsHTTPS(r *http.Request, trustedProxies *TrustedProxies) bool {
