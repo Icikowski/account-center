@@ -12,6 +12,7 @@ const (
 	FieldCommit    = "commit"
 	FieldBuildTime = "build_time"
 	FieldGoVersion = "go_version"
+	FieldArch      = "arch"
 	FieldCause     = "cause"
 
 	FieldSubject  = "subject"

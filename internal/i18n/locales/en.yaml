@@ -20,6 +20,8 @@
   other: Build time
 - id: about.go_version
   other: Go version
+- id: about.architecture
+  other: Architecture
 - id: auth.login
   other: Login
 - id: auth.logout

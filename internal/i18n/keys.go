@@ -23,6 +23,7 @@ const (
 	KeyAboutGitReference Key = "about.git_reference"
 	KeyAboutBuildTime    Key = "about.build_time"
 	KeyAboutGoVersion    Key = "about.go_version"
+	KeyAboutArchitecture Key = "about.architecture"
 
 	KeyAuthLogin       Key = "auth.login"
 	KeyAuthLogout      Key = "auth.logout"

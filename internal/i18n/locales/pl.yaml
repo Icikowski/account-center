@@ -20,6 +20,8 @@
   other: Czas kompilacji
 - id: about.go_version
   other: Wersja języka Go
+- id: about.architecture
+  other: Architektura
 - id: auth.login
   other: Zaloguj się
 - id: auth.logout

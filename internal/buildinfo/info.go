@@ -12,6 +12,7 @@ type BuildInfo struct {
 	GitReference string    `json:"commit"`
 	BuildTime    time.Time `json:"build_time"`
 	GoVersion    string    `json:"go_version"`
+	Architecture string    `json:"architecture"`
 }
 
 // Get returns the [BuildInfo].
@@ -25,5 +26,6 @@ func Get() BuildInfo {
 		GitReference: gitref,
 		BuildTime:    buildTime,
 		GoVersion:    strings.TrimPrefix(runtime.Version(), "go"),
+		Architecture: runtime.GOARCH,
 	}
 }

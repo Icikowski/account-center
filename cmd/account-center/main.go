@@ -43,6 +43,7 @@ func main() {
 		Str(xlog.FieldCommit, ver.GitReference).
 		Time(xlog.FieldBuildTime, ver.BuildTime).
 		Str(xlog.FieldGoVersion, ver.GoVersion).
+		Str(xlog.FieldArch, ver.Architecture).
 		Msg("initializing application")
 
 	trustedProxies, err := auth.NewTrustedProxies(cfg.Server.TrustedProxyCIDRs)
