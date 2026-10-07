@@ -3,6 +3,8 @@ version: "3"
 vars:
   TAILWIND_CMD:
     sh: command -v tailwindcss >/dev/null 2>&1 && echo "tailwindcss" || echo "npx tailwindcss@latest"
+  TEMPL_CMD:
+    sh: command -v templ >/dev/null 2>&1 && echo "templ" || echo "go tool templ"
   BUILD_VERSION:
     sh: echo ${BUILD_VERSION:-$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "dev")}
   BUILD_GIT_REF:
@@ -23,7 +25,7 @@ tasks:
   generate:
     cmds:
       - go generate ./...
-      - go tool templ generate
+      - "{{.TEMPL_CMD}} generate"
       - "{{.TAILWIND_CMD}} -i ./internal/web/assets/sources/input.css -o ./internal/web/assets/css/style.css"
   build:
     cmd: go build -o ./bin/account-center ./cmd/account-center
@@ -62,7 +64,7 @@ tasks:
     cmd: go test -race -v ./...
   templ:
     cmd: |
-      go tool templ generate \
+      {{.TEMPL_CMD}} generate \
         --watch \
         --proxy="http://localhost:8080" \
         --cmd="go run ./cmd/account-center" \

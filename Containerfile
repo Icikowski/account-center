@@ -31,6 +31,17 @@ RUN set -eu; \
     esac; \
     wget -nv -O /usr/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${yq_arch}"; \
     chmod +x /usr/bin/yq
+RUN set -eu; \
+    arch="${TARGETARCH:-$(uname -m)}"; \
+    case "$arch" in \
+      amd64|x86_64) templ_arch=x86_64 ;; \
+      arm64|aarch64) templ_arch=arm64 ;; \
+      *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    wget -nv -O /tmp/templ.tar.gz "https://github.com/a-h/templ/releases/latest/download/templ_Linux_${templ_arch}.tar.gz"; \
+    tar -xzf /tmp/templ.tar.gz -C /tmp; \
+    install /tmp/templ /usr/bin/templ; \
+    rm -f /tmp/templ.tar.gz /tmp/templ /tmp/LICENSE /tmp/README.md
 RUN wget -nv -O- https://golangci-lint.run/install.sh | sh -s -- -b /usr/bin
 RUN wget -nv -O- https://taskfile.dev/install.sh | sh -s -- -b /usr/bin
 RUN go mod download -x
