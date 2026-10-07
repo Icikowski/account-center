@@ -22,9 +22,17 @@ RUN set -eu; \
     esac; \
     wget -nv -O /usr/bin/tailwindcss "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-${tailwind_arch}"; \
     chmod +x /usr/bin/tailwindcss
-RUN go install github.com/mikefarah/yq/v4@latest
-RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-RUN go install github.com/go-task/task/v3/cmd/task@latest
+RUN set -eu; \
+    arch="${TARGETARCH:-$(uname -m)}"; \
+    case "$arch" in \
+      amd64|x86_64) yq_arch=amd64 ;; \
+      arm64|aarch64) yq_arch=arm64 ;; \
+      *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    wget -nv -O /usr/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${yq_arch}"; \
+    chmod +x /usr/bin/yq
+RUN wget -nv -O- https://golangci-lint.run/install.sh | sh -s -- -b /usr/bin
+RUN wget -nv -O- https://taskfile.dev/install.sh | sh -s -- -b /usr/bin
 RUN go mod download -x
 RUN task generate fmt build-static build-healthcheck
 
