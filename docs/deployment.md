@@ -11,6 +11,18 @@
 - `icikowski/account-center`
 - `ghcr.io/icikowski/account-center`
 
+Published tags are multi-arch manifests that resolve to `linux/amd64` and `linux/arm64`.
+
+### Tag guide
+
+| Tag      | Published from                | Notes                                       |
+| -------- | ----------------------------- | ------------------------------------------- |
+| `dev`    | `main`                        | Published on every push to the main branch. |
+| `v*`     | Matching Git `v*` tag         | Published for each versioned release tag.   |
+| `latest` | Latest built `v*` release tag | Points to the newest built release tag.     |
+
+Multi-arch images start with `v1.9.0`.
+
 ## Reverse proxy for TLS/SSL
 
 **Account Center** does not terminate TLS/SSL itself. Put a reverse proxy (such as `nginx`) in front of it and handle HTTPS there.

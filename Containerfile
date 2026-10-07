@@ -7,13 +7,21 @@ FROM golang:1.27 AS builder
 ARG BUILD_VERSION
 ARG BUILD_GIT_REF
 ARG BUILD_TIMESTAMP
+ARG TARGETARCH
 ENV BUILD_VERSION=${BUILD_VERSION}
 ENV BUILD_GIT_REF=${BUILD_GIT_REF}
 ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
 WORKDIR /app
 COPY . .
-RUN wget -O /usr/bin/tailwindcss "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64"
-RUN chmod +x /usr/bin/tailwindcss
+RUN set -eu; \
+    arch="${TARGETARCH:-$(uname -m)}"; \
+    case "$arch" in \
+      amd64|x86_64) tailwind_arch=x64 ;; \
+      arm64|aarch64) tailwind_arch=arm64 ;; \
+      *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    wget -O /usr/bin/tailwindcss "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-${tailwind_arch}"; \
+    chmod +x /usr/bin/tailwindcss
 RUN go install github.com/mikefarah/yq/v4@latest
 RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 RUN go install github.com/go-task/task/v3/cmd/task@latest

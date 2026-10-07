@@ -118,6 +118,8 @@ Published images:
 - `icikowski/account-center`
 - `ghcr.io/icikowski/account-center`
 
+Starting with `v1.9.0`, image tags are multi-arch manifests that resolve to `linux/amd64` and `linux/arm64`.
+
 See [`docs/deployment.md`](docs/deployment.md) for full examples.
 
 ## License

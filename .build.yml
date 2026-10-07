@@ -45,29 +45,28 @@ tasks:
       build_git_ref=$(git rev-parse --verify ${GIT_REF:-HEAD})
       build_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
       build_short_ref=$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "main")
-      local_image="localhost/account-center:${image_tag}"
-
+      manifest_ref="localhost/account-center:${image_tag}"
       podman build \
         --cgroup-manager=cgroupfs \
         --format docker \
+        --platform linux/amd64,linux/arm64 \
+        --manifest "$manifest_ref" \
         --file Containerfile \
         --build-arg BUILD_VERSION="$build_version" \
         --build-arg BUILD_GIT_REF="$build_git_ref" \
         --build-arg BUILD_TIMESTAMP="$build_timestamp" \
         --build-arg BUILD_SHORT_REF="$build_short_ref" \
-        --tag "$local_image" .
+        .
 
       for repository in \
         icikowski/account-center \
         ghcr.io/icikowski/account-center
       do
         remote_image="${repository}:${image_tag}"
-        podman tag "$local_image" "$remote_image"
-        podman push "$remote_image"
+        podman manifest push --all "$manifest_ref" "docker://$remote_image"
 
         if test -n "$latest_tag"; then
           latest_image="${repository}:${latest_tag}"
-          podman tag "$local_image" "$latest_image"
-          podman push "$latest_image"
+          podman manifest push --all "$manifest_ref" "docker://$latest_image"
         fi
       done
