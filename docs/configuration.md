@@ -24,6 +24,7 @@ The application serves HTTP only. Deploy it behind a reverse proxy that terminat
 | `/logout`               | Clears the local session and attempts token revocation                |
 | `/assets/...`           | Static frontend assets                                                |
 | `/manifest.webmanifest` | Web app manifest                                                      |
+| `/robots.txt`           | Robots exclusion file                                                 |
 | `/health/live`          | Liveness probe                                                        |
 | `/health/ready`         | Readiness probe for catalog, KB, and storage                          |
 

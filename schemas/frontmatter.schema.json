@@ -15,8 +15,7 @@
     },
     "featured_image": {
       "type": "string",
-      "format": "uri",
-      "description": "Path to the featured image for the article"
+      "description": "Path or URL to the featured image for the article"
     }
   },
   "required": ["title", "description"],
