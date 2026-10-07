@@ -20,7 +20,7 @@ RUN set -eu; \
       arm64|aarch64) tailwind_arch=arm64 ;; \
       *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
     esac; \
-    wget -O /usr/bin/tailwindcss "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-${tailwind_arch}"; \
+    wget -nv -O /usr/bin/tailwindcss "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-${tailwind_arch}"; \
     chmod +x /usr/bin/tailwindcss
 RUN go install github.com/mikefarah/yq/v4@latest
 RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
