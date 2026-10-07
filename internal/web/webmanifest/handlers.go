@@ -53,13 +53,14 @@ func (h *webManifestHandler) generateManifest(ctx context.Context) Manifest {
 		Name:        title,
 		ShortName:   i18n.T(ctx, i18n.KeyGeneralAccountCenter),
 		Description: i18n.T(ctx, i18n.KeyGeneralDescription),
-		Category: Categories{
+		Categories: Categories{
 			CategoryLifestyle, CategoryProductivity, CategoryUtilities,
 		},
 		Language:        i18n.T(ctx, i18n.KeyLanguageCode),
 		Display:         DisplayStandalone,
-		StartURL:        "../",
-		Scope:           "../",
+		ID:              "/",
+		StartURL:        "/",
+		Scope:           "/",
 		BackgroundColor: "#7db48f",
 		ThemeColor:      "#3c8e96",
 		Icons: Icons{

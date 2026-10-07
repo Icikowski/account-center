@@ -12,9 +12,10 @@ type Manifest struct {
 	Name            string      `json:"name"`
 	ShortName       string      `json:"short_name"`
 	Description     string      `json:"description"`
-	Category        Categories  `json:"category,omitempty"`
+	Categories      Categories  `json:"categories,omitempty"`
 	Language        string      `json:"lang,omitempty"`
 	Display         Display     `json:"display"`
+	ID              string      `json:"id,omitempty"`
 	StartURL        string      `json:"start_url"`
 	Scope           string      `json:"scope,omitempty"`
 	BackgroundColor string      `json:"background_color,omitempty"`
@@ -35,8 +36,8 @@ func (m Manifest) Validate() error {
 	if m.ShortName == "" {
 		errs = append(errs, xerror.NewValidationError("manifest short name cannot be empty"))
 	}
-	if len(m.Category) != 0 {
-		if err := m.Category.Validate(); err != nil {
+	if len(m.Categories) != 0 {
+		if err := m.Categories.Validate(); err != nil {
 			errs = append(errs, err)
 		}
 	}
