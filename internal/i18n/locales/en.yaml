@@ -22,6 +22,16 @@
   other: Go version
 - id: about.architecture
   other: Architecture
+- id: about.link.project
+  other: Project on SourceHut
+- id: about.link.repository
+  other: Repository on SourceHut
+- id: about.link.mirror
+  other: Repository mirror on GitHub
+- id: about.link.mailing_lists
+  other: Mailing lists
+- id: about.link.issue_tracker
+  other: Issue tracker
 - id: auth.login
   other: Login
 - id: auth.logout

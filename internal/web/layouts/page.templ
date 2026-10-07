@@ -14,6 +14,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/table"
+	"github.com/templui/templui/components/separator"
 	"strings"
 )
 
@@ -189,14 +190,59 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 									}
 								}
 							</div>
-							<div class="space-y-2">
+							<div class="flex flex-wrap items-center justify-center gap-2">
 								@button.Button(button.Props{
-									Size:    button.SizeIcon,
-									Variant: button.VariantSecondary,
-									Href:    "https://sr.ht/~icikowski/account-center",
-									Target:  "_blank",
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkProject)},
+									Href:       "https://sr.ht/~icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.FolderGit(icon.Props{Class: "size-4"})
+								}
+								@separator.Separator(separator.Props{
+									Orientation: separator.OrientationVertical,
+									Class:       "mx-2",
+								})
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkRepository)},
+									Href:       "https://git.sr.ht/~icikowski/account-center",
+									Target:     "_blank",
 								}) {
 									@icon.GitBranch(icon.Props{Class: "size-4"})
+								}
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkMirror)},
+									Href:       "https://github.com/Icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.GitFork(icon.Props{Class: "size-4"})
+								}
+								@separator.Separator(separator.Props{
+									Orientation: separator.OrientationVertical,
+									Class:       "mx-2",
+								})
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkMailingLists)},
+									Href:       "https://sr.ht/~icikowski/account-center/lists",
+									Target:     "_blank",
+								}) {
+									@icon.Mails(icon.Props{Class: "size-4"})
+								}
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkIssueTracker)},
+									Href:       "https://todo.sr.ht/~icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.Bug(icon.Props{Class: "size-4"})
 								}
 							</div>
 						</div>

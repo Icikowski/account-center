@@ -25,6 +25,12 @@ const (
 	KeyAboutGoVersion    Key = "about.go_version"
 	KeyAboutArchitecture Key = "about.architecture"
 
+	KeyAboutLinkProject      Key = "about.link.project"
+	KeyAboutLinkRepository   Key = "about.link.repository"
+	KeyAboutLinkMirror       Key = "about.link.mirror"
+	KeyAboutLinkMailingLists Key = "about.link.mailing_lists"
+	KeyAboutLinkIssueTracker Key = "about.link.issue_tracker"
+
 	KeyAuthLogin       Key = "auth.login"
 	KeyAuthLogout      Key = "auth.logout"
 	KeyAuthRefresh     Key = "auth.refresh"

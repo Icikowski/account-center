@@ -22,6 +22,16 @@
   other: Wersja języka Go
 - id: about.architecture
   other: Architektura
+- id: about.link.project
+  other: Projekt na SourceHut
+- id: about.link.repository
+  other: Repozytorium na SourceHut
+- id: about.link.mirror
+  other: Lustrzane repozytorium na GitHub
+- id: about.link.mailing_lists
+  other: Listy mailingowe
+- id: about.link.issue_tracker
+  other: Śledzenie zgłoszeń
 - id: auth.login
   other: Zaloguj się
 - id: auth.logout
