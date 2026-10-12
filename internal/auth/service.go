@@ -255,6 +255,9 @@ func (s *service) ExchangeCode(ctx context.Context, loginID, code string) (model
 func (s *service) GetSession(ctx context.Context, sessionID string) (model.Session, error) {
 	record, err := s.store.Sessions().Get(ctx, sessionID)
 	if err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			return model.Session{}, errNotFound
+		}
 		return model.Session{}, fmt.Errorf("%w: %w", errLoadSession, err)
 	}
 
@@ -320,6 +323,9 @@ func (s *service) refreshSession(ctx context.Context, sessionID string, force bo
 		now := time.Now()
 		record, err := s.store.Sessions().Get(ctx, sessionID)
 		if err != nil {
+			if errors.Is(err, store.ErrNotFound) {
+				return model.StoredSession{}, errNotFound
+			}
 			return model.StoredSession{}, fmt.Errorf("%w: %w", errLoadSession, err)
 		}
 		if !force && !s.shouldRefresh(record.Expiry) {
