@@ -87,10 +87,10 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 							}
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								if bd.InstanceName != "" {
-									<span class="truncate font-semibold">{ bd.InstanceName }</span>
-									<span class="truncate text-xs">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+									<span class="truncate font-semibold text-left">{ bd.InstanceName }</span>
+									<span class="truncate text-xs text-left">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
 								} else {
-									<span class="truncate font-semibold">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+									<span class="truncate font-semibold text-left">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
 								}
 							</div>
 						}
@@ -107,11 +107,15 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 									})
 								}
 								<div class="max-w-full">
-									@dialog.Title() {
+									@dialog.Title(dialog.TitleProps{
+										Class: "text-left",
+									}) {
 										{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
 									}
 									if bd.InstanceName != "" {
-										@dialog.Description() {
+										@dialog.Description(dialog.DescriptionProps{
+											Class: "text-left",
+										}) {
 											{ bd.InstanceName }
 										}
 									}
@@ -160,9 +164,9 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 												{ i18n.T(ctx, i18n.KeyAboutGitReference) }
 											}
 											@table.Cell() {
-												<a href={ "https://git.sr.ht/~icikowski/account-center/refs/" + bi.GitReference } target="_blank" class="text-inherit no-underline hover:underline">
-													@badge.Badge() {
-														<code>{ bi.GitReference }</code>
+												<a href={ "https://git.sr.ht/~icikowski/account-center/refs/" + bi.GitReference } target="_blank" class="block max-w-full text-inherit no-underline hover:underline">
+													@badge.Badge(badge.Props{Class: "w-full justify-start whitespace-normal break-all sm:w-fit sm:justify-center"}) {
+														<code class="whitespace-normal break-all">{ bi.GitReference }</code>
 													}
 												</a>
 											}
@@ -425,7 +429,7 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 							}) {
 								<span class="flex items-center">
 									@icon.CloudSync(icon.Props{Class: "size-4 mr-2"})
-									{  i18n.T(ctx, i18n.KeyAuthRefresh) }
+									{ i18n.T(ctx, i18n.KeyAuthRefresh) }
 								</span>
 							}
 							@dropdown.Item(dropdown.ItemProps{
@@ -433,7 +437,7 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 							}) {
 								<span class="flex items-center">
 									@icon.LogOut(icon.Props{Class: "size-4 mr-2"})
-									{  i18n.T(ctx, i18n.KeyAuthLogout) }
+									{ i18n.T(ctx, i18n.KeyAuthLogout) }
 								</span>
 							}
 						} else {
@@ -442,7 +446,7 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 							}) {
 								<span class="flex items-center">
 									@icon.LogIn(icon.Props{Class: "size-4 mr-2"})
-									{  i18n.T(ctx, i18n.KeyAuthLogin) }
+									{ i18n.T(ctx, i18n.KeyAuthLogin) }
 								</span>
 							}
 						}
