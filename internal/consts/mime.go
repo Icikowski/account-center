@@ -4,6 +4,7 @@ package consts
 const (
 	MIMEApplicationJSON         = "application/json"
 	MIMEApplicationManifestJSON = "application/manifest+json"
+	MIMEApplicationYAML         = "application/yaml"
 	MIMETextPlain               = "text/plain"
 	MIMEImagePNG                = "image/png"
 )

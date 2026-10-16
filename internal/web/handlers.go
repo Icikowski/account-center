@@ -14,6 +14,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
 	"git.sr.ht/~icikowski/account-center/internal/store"
+	"git.sr.ht/~icikowski/account-center/internal/web/api"
 	"git.sr.ht/~icikowski/account-center/internal/web/assets"
 	"git.sr.ht/~icikowski/account-center/internal/web/health"
 	"git.sr.ht/~icikowski/account-center/internal/web/robots"
@@ -38,6 +39,7 @@ func NewHandler(
 	assetsHandler := assets.NewHandler(consts.RouteAssets)
 	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
 	robotsHandler := robots.NewHandler()
+	apiHandler := api.NewHandler(catalogSource, evaluator)
 	uiHandler := ui.NewHandler(instanceName, useGravatar, catalogSource, knowledgeBaseSource, evaluator)
 
 	authMiddleware := auth.NewMiddleware(
@@ -73,7 +75,11 @@ func NewHandler(
 	r.Route(consts.RouteRobots, robotsHandler.Bind)
 
 	r.With(
-		authMiddleware.Middleware,
+		authMiddleware.Optional,
+	).Route(consts.RouteAPI, apiHandler.Bind)
+
+	r.With(
+		authMiddleware.Required,
 	).Route(consts.RouteRoot, uiHandler.Bind)
 
 	return r

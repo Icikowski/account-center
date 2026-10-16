@@ -1,0 +1,183 @@
+openapi: 3.2.0
+info:
+  title: Account Center API
+  version: 1.0.0
+  description: |
+    Read-only, minimalistic JSON API of a self-hosted Account Center instance.
+
+    Authentication reuses the session cookie issued by the regular OIDC login flow (`/login`).
+    The API never redirects to the login page, never exposes tokens and never sends cacheable responses.
+  license:
+    name: AGPL-3.0-only
+    identifier: AGPL-3.0-only
+servers:
+  - url: /
+    description: This Account Center instance
+security:
+  - sessionCookie: []
+tags:
+  - name: Session
+    description: State of the caller's session.
+  - name: Services
+    description: Services visible to the caller.
+paths:
+  /api/v1/session:
+    get:
+      operationId: getSession
+      tags: [Session]
+      summary: Get the state of the current session
+      description: Always answers `200`, so clients can cheaply check whether the user is signed in.
+      security:
+        - sessionCookie: []
+        - {}
+      responses:
+        "200":
+          description: Session state.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+              examples:
+                authenticated:
+                  value:
+                    authenticated: true
+                    user:
+                      name: Jane Doe
+                      email: jane@example.com
+                      picture: https://sso.example.com/avatar/jane.png
+                anonymous:
+                  value:
+                    authenticated: false
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+  /api/v1/services:
+    get:
+      operationId: listServices
+      tags: [Services]
+      summary: List the services visible to the current user
+      description: |
+        Returns the services assigned to the signed-in user, sorted by name, using the same evaluation
+        rules as the catalog page.
+      responses:
+        "200":
+          description: Services visible to the user.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesResponse"
+              example:
+                services:
+                  - name: Wiki
+                    url: https://wiki.example.com
+                    icon: https://wiki.example.com/favicon.png
+                    role: editor
+        "401":
+          description: The caller is anonymous or the session has expired.
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/CacheControl"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: authentication required
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: account-center-session
+      description: |
+        Session cookie obtained through the OIDC login flow. The default name is `account-center-session`
+        and can be changed with `AC_SESSION_COOKIE_NAME`.
+  headers:
+    CacheControl:
+      description: Always `no-store`.
+      schema:
+        type: string
+        const: no-store
+  responses:
+    MethodNotAllowed:
+      description: Only `GET` is supported.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error: method not allowed
+  schemas:
+    SessionResponse:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated:
+          type: boolean
+          description: Whether the caller has a valid session.
+        user:
+          $ref: "#/components/schemas/User"
+    User:
+      type: object
+      description: Present only when `authenticated` is `true`.
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        picture:
+          type: string
+          description: Profile picture URL reported by the identity provider. Omitted when unknown.
+    ServicesResponse:
+      type: object
+      required: [services]
+      properties:
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/Service"
+    Service:
+      type: object
+      required: [name, url, role]
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        icon:
+          type: string
+          format: uri
+          description: Omitted when the service has no icon.
+        role:
+          $ref: "#/components/schemas/UserRole"
+    UserRole:
+      type: string
+      description: Effective role of the user in the service. This is an identifier, not a translated label.
+      enum:
+        - superuser
+        - system_administrator
+        - administrator
+        - owner
+        - redactor
+        - editor
+        - contributor
+        - member
+        - viewer
+        - user
+        - guest
+        - general_access
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

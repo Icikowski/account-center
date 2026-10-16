@@ -22,5 +22,12 @@ const (
 	RouteKnowledgeBase            = "/kb"
 	RouteKnowledgeBaseAttachments = "/kb/attachments"
 
+	RouteAPI         = "/api"
+	RouteAPIV1       = "/v1"
+	RouteAPISession  = "/session"
+	RouteAPIServices = "/services"
+
+	RouteAPIOpenAPI = "/openapi.yaml"
+
 	RouteFallbackProfilePicture = "/assets/img/user.jpg"
 )

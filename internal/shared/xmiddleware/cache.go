@@ -14,3 +14,11 @@ func StaticResourcesCacheControl(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// NoStore is a middleware that forbids any caching of the response.
+func NoStore(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(consts.HeaderCacheControl, "no-store")
+		next.ServeHTTP(w, r)
+	})
+}

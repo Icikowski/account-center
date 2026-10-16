@@ -17,7 +17,11 @@ import (
 
 // Middleware defines the interface for the authentication middleware provider.
 type Middleware interface {
-	Middleware(next http.Handler) http.Handler
+	// Required loads the session into the request context when present, and redirects or rejects the request when not
+	// present.
+	Required(next http.Handler) http.Handler
+	// Optional loads the session into the request context when present, but never redirects or rejects the request.
+	Optional(next http.Handler) http.Handler
 }
 
 type authMiddleware struct {
@@ -52,8 +56,8 @@ func NewMiddleware(
 	}
 }
 
-// Middleware implements [Middleware].
-func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
+// Required implements [Middleware].
+func (m *authMiddleware) Required(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case m.oidcCallbackPath:
@@ -83,6 +87,16 @@ func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, rr)
+	})
+}
+
+// Optional implements [Middleware].
+func (m *authMiddleware) Optional(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if rr, ok := m.withSessionContext(w, r, false); ok {
+			r = rr
+		}
+		next.ServeHTTP(w, r)
 	})
 }
 
