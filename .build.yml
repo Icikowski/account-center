@@ -13,7 +13,7 @@ secrets:
   - 65d4bf79-0440-47b0-8462-0dec7b6880bd # ~/.token_dockerhub
   - faa31eef-4d36-41ea-b68b-08167fb89e5f # ~/.token_github
 tasks:
-  - build-and-push: |
+  - container: |
       cd account-center
 
       case "$GIT_REF" in
