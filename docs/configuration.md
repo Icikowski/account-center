@@ -22,6 +22,8 @@ The application serves HTTP only. Deploy it behind a reverse proxy that terminat
 | `/oidc-callback`        | OIDC callback endpoint                                                |
 | `/refresh`              | Forces a session refresh                                              |
 | `/logout`               | Clears the local session and attempts token revocation                |
+| `/api/v1/...`           | Read-only JSON API (see [API](api.md))                                |
+| `/api/openapi.yaml`     | OpenAPI description of the API                                        |
 | `/assets/...`           | Static frontend assets                                                |
 | `/manifest.webmanifest` | Web app manifest                                                      |
 | `/robots.txt`           | Robots exclusion file                                                 |
@@ -111,7 +113,7 @@ The `picture` claim is optional and is used for the user's avatar when present. 
 | `schemas/catalog.schema.json`     | Reference schema for catalog authoring |
 | `schemas/frontmatter.schema.json` | Reference schema for KB front matter   |
 
-## Related guides
+## See also
 
 - [Environment variables](environment-variables.md)
 - [Deployment](deployment.md)

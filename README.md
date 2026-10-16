@@ -53,7 +53,7 @@ Solution's highlights include:
 | `internal/config`        | Environment variable parsing and validation        |
 | `internal/evaluator`     | Effective role calculation for visible services    |
 | `internal/knowledgebase` | Markdown loading, validation, link/asset rewriting |
-| `internal/web`           | HTTP routes, UI, assets, templates                 |
+| `internal/web`           | HTTP routes, UI, JSON API, assets, templates       |
 | `schemas`                | JSON schemas for catalog and KB front matter       |
 
 ## Documentation
@@ -64,6 +64,7 @@ Solution's highlights include:
 | [Environment variables](docs/environment-variables.md) | Reference for every `AC_*` variable                                  |
 | [Deployment](docs/deployment.md)                       | Binary, Docker, Docker Compose and reverse proxy deployment guidance |
 | [OIDC configuration](docs/oidc.md)                     | Provider requirements and a sanitized OIDC provider example          |
+| [API](docs/api.md)                                     | Read-only JSON API for non-HTML clients                              |
 | [Services catalog](docs/services-catalog.md)           | YAML schema, roles and access evaluation rules                       |
 | [Knowledge base](docs/knowledge-base.md)               | Enablement, layout, front matter, links and assets                   |
 
