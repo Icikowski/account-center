@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"slices"
@@ -23,6 +24,11 @@ type Config struct {
 	OIDC          OIDCConfig          `envPrefix:"OIDC_"`
 	Redis         RedisConfig         `envPrefix:"REDIS_"`
 	Log           LogConfig           `envPrefix:"LOG_"`
+}
+
+// ServerAddr returns the server address in the format "address:port".
+func (c *ServerConfig) ServerAddr() string {
+	return fmt.Sprintf("%s:%d", c.Address, c.Port)
 }
 
 // Validate checks if the whole [Config] is valid.

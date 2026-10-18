@@ -1,7 +1,7 @@
 package api
 
 import (
-	_ "embed" // Required for embedding the OpenAPI document.
+	_ "embed"
 	"encoding/json"
 	"net/http"
 	"sort"

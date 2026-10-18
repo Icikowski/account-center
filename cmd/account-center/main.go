@@ -4,7 +4,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -109,7 +108,7 @@ func main() {
 	)
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", cfg.Server.Address, cfg.Server.Port),
+		Addr:    cfg.Server.ServerAddr(),
 		Handler: webHandler,
 	}
 
