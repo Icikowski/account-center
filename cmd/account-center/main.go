@@ -97,6 +97,7 @@ func main() {
 	webHandler := web.NewHandler(
 		cfg.Instance.Name,
 		cfg.Instance.UseGravatar,
+		cfg.Instance.ShowBrowserExtensions,
 		catalogProvider,
 		knowledgeBaseProvider,
 		storageBackend,

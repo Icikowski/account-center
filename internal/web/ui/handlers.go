@@ -23,28 +23,31 @@ import (
 type uiHandler struct {
 	bundle *goi18n.Bundle
 
-	instanceName        string
-	useGravatar         bool
-	catalogSource       model.Reloader[model.Catalog]
-	knowledgeBaseSource model.Reloader[model.KnowledgeBase]
-	evaluator           evaluator.Evaluator
+	instanceName          string
+	useGravatar           bool
+	showBrowserExtensions bool
+	catalogSource         model.Reloader[model.Catalog]
+	knowledgeBaseSource   model.Reloader[model.KnowledgeBase]
+	evaluator             evaluator.Evaluator
 }
 
 // NewHandler creates a new web UI handler with the provided instance name, catalog source, and knowledge base source.
 func NewHandler(
 	instanceName string,
 	useGravatar bool,
+	showBrowserExtensions bool,
 	catalogSource model.Reloader[model.Catalog],
 	knowledgeBaseSource model.Reloader[model.KnowledgeBase],
 	evaluator evaluator.Evaluator,
 ) xhttp.RouteBinder {
 	return &uiHandler{
-		bundle:              i18n.NewBundle(),
-		instanceName:        instanceName,
-		useGravatar:         useGravatar,
-		catalogSource:       catalogSource,
-		knowledgeBaseSource: knowledgeBaseSource,
-		evaluator:           evaluator,
+		bundle:                i18n.NewBundle(),
+		instanceName:          instanceName,
+		useGravatar:           useGravatar,
+		showBrowserExtensions: showBrowserExtensions,
+		catalogSource:         catalogSource,
+		knowledgeBaseSource:   knowledgeBaseSource,
+		evaluator:             evaluator,
 	}
 }
 
@@ -134,7 +137,7 @@ func (h *uiHandler) baseDataMiddleware(next http.Handler) http.Handler {
 		var (
 			ctx      = r.Context()
 			session  = auth.FromContext(ctx)
-			baseData = layouts.BaseData{InstanceName: h.instanceName}
+			baseData = layouts.BaseData{InstanceName: h.instanceName, ShowBrowserExtensions: h.showBrowserExtensions}
 		)
 
 		if session != nil {

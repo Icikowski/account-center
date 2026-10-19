@@ -12,9 +12,10 @@ import (
 
 // BaseData represents the base data structure that is passed to all templates in the application.
 type BaseData struct {
-	InstanceName string
-	Counters     Counters
-	User         *User
+	InstanceName          string
+	ShowBrowserExtensions bool
+	Counters              Counters
+	User                  *User
 }
 
 // Counters holds the number of services and knowledge base articles.

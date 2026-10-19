@@ -11,11 +11,14 @@ type Key string
 const (
 	KeyLanguageCode Key = "code"
 
-	KeyGeneralAccountCenter Key = "general.account_center"
-	KeyGeneralDescription   Key = "general.description"
-	KeyGeneralLanguage      Key = "general.language"
-	KeyGeneralTheme         Key = "general.theme"
-	KeyGeneralSystem        Key = "general.system"
+	KeyGeneralAccountCenter            Key = "general.account_center"
+	KeyGeneralDescription              Key = "general.description"
+	KeyGeneralLanguage                 Key = "general.language"
+	KeyGeneralTheme                    Key = "general.theme"
+	KeyGeneralSystem                   Key = "general.system"
+	KeyGeneralBrowserExtensions        Key = "general.browser_extensions"
+	KeyGeneralBrowserExtensionsFirefox Key = "general.browser_extensions.firefox"
+	KeyGeneralBrowserExtensionsChrome  Key = "general.browser_extensions.chrome"
 
 	KeyWelcomeMessage Key = "welcome.message"
 

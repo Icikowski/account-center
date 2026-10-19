@@ -21,7 +21,7 @@ import (
 templ Page(title string, nav *NavigationItem) {
 	{{ bd := FromContext(ctx) }}
 	<!DOCTYPE html>
-	<html class="h-full">
+	<html class="h-full" lang={ i18n.T(ctx, i18n.KeyLanguageCode) }>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -418,6 +418,42 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 										<span class="flex items-center">
 											{ i18n.T(ctx, i18n.KeyGeneralSystem) }
 										</span>
+									}
+								}
+							}
+						}
+						if bd.ShowBrowserExtensions {
+							@dropdown.Separator()
+							@dropdown.Group() {
+								@collapsible.Collapsible() {
+									@collapsible.Trigger() {
+										@dropdown.Item() {
+											<span class="flex items-center justify-between w-full">
+												<span class="flex items-center w-full">
+													@icon.Puzzle(icon.Props{Class: "size-4 mr-2"})
+													{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensions) }
+												</span>
+												@icon.ChevronsUpDown(icon.Props{Class: "size-4"})
+											</span>
+										}
+									}
+									@collapsible.Content() {
+										@dropdown.Item(dropdown.ItemProps{
+											Href:   "https://addons.mozilla.org/firefox/addon/account-center/",
+											Target: "_blank",
+										}) {
+											<span class="flex items-center">
+												{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsFirefox) }
+											</span>
+										}
+										@dropdown.Item(dropdown.ItemProps{
+											Href:   "https://chromewebstore.google.com/detail/ngjhhagcpndonjabkbdmgfgephejmkgi/",
+											Target: "_blank",
+										}) {
+											<span class="flex items-center">
+												{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsChrome) }
+											</span>
+										}
 									}
 								}
 							}

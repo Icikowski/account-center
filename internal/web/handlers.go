@@ -26,6 +26,7 @@ import (
 func NewHandler(
 	instanceName string,
 	useGravatar bool,
+	showBrowserExtensions bool,
 	catalogSource model.Reloader[model.Catalog],
 	knowledgeBaseSource model.Reloader[model.KnowledgeBase],
 	storageBackend store.StorageBackend,
@@ -40,7 +41,14 @@ func NewHandler(
 	webManifestHandler := webmanifest.NewHandler(instanceName, consts.RouteAssets)
 	robotsHandler := robots.NewHandler()
 	apiHandler := api.NewHandler(catalogSource, evaluator)
-	uiHandler := ui.NewHandler(instanceName, useGravatar, catalogSource, knowledgeBaseSource, evaluator)
+	uiHandler := ui.NewHandler(
+		instanceName,
+		useGravatar,
+		showBrowserExtensions,
+		catalogSource,
+		knowledgeBaseSource,
+		evaluator,
+	)
 
 	authMiddleware := auth.NewMiddleware(
 		authService,

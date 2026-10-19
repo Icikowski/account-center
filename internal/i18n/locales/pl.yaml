@@ -10,6 +10,12 @@
   other: Motyw
 - id: general.system
   other: Systemowy
+- id: general.browser_extensions
+  other: Rozszerzenia
+- id: general.browser_extensions.firefox
+  other: Firefox
+- id: general.browser_extensions.chrome
+  other: Chrome
 - id: welcome.message
   other: Witamy w Centrum kont! Zaloguj się, aby uzyskać dostęp do swoich usług i zasobów.
 - id: about.version
