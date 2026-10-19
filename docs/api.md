@@ -1,6 +1,6 @@
 # API
 
-**Account Center** exposes a small, read-only JSON API under `/api/v1`. It is meant for non-HTML clients such as the browser extension or a PWA service worker.
+**Account Center** exposes a small, read-only JSON API under `/api/v1`. It is meant for non-HTML clients such as the [browser extension](browser-extension.md) or a PWA service worker.
 
 The machine-readable description is available as an OpenAPI 3.1 document: [`internal/web/api/openapi.yaml`](../internal/web/api/openapi.yaml). Every instance serves it at `/api/openapi.yaml`.
 
@@ -52,4 +52,5 @@ Returns the services visible to the caller, sorted by name, using the same evalu
 ## See also
 
 - [Configuration overview](configuration.md)
+- [Browser extension](browser-extension.md)
 - [Services catalog](services-catalog.md)

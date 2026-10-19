@@ -40,7 +40,8 @@ Solution's highlights include:
 
 - live reload for catalog and KB content;
 - in-memory or Redis-backed sessions;
-- reverse-proxy-aware deployment.
+- reverse-proxy-aware deployment;
+- a [browser extension](docs/browser-extension.md) showing the signed-in user and available services, available for [Firefox](https://addons.mozilla.org/firefox/addon/account-center/) and [Chrome](https://chromewebstore.google.com/detail/ngjhhagcpndonjabkbdmgfgephejmkgi/) (including Chromium-based browsers).
 
 ## Repository layout
 
@@ -65,6 +66,7 @@ Solution's highlights include:
 | [Deployment](docs/deployment.md)                       | Binary, Docker, Docker Compose and reverse proxy deployment guidance |
 | [OIDC configuration](docs/oidc.md)                     | Provider requirements and a sanitized OIDC provider example          |
 | [API](docs/api.md)                                     | Read-only JSON API for non-HTML clients                              |
+| [Browser extension](docs/browser-extension.md)         | Firefox/Chrome launcher extension guide                              |
 | [Services catalog](docs/services-catalog.md)           | YAML schema, roles and access evaluation rules                       |
 | [Knowledge base](docs/knowledge-base.md)               | Enablement, layout, front matter, links and assets                   |
 
