@@ -1,6 +1,6 @@
 module git.sr.ht/~icikowski/account-center
 
-go 1.27.2
+go 1.27.3
 
 tool (
 	github.com/a-h/templ/cmd/templ
