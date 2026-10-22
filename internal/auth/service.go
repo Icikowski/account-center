@@ -78,6 +78,8 @@ type Service interface {
 	RefreshSession(ctx context.Context, sessionID string) (model.Session, error)
 	// SessionTTL returns the configured session lifetime used for persisted sessions.
 	SessionTTL() time.Duration
+	// LoginStateTTL returns the configured lifetime of transient OIDC login state.
+	LoginStateTTL() time.Duration
 	// Logout removes the stored session and revokes provider-side tokens when supported.
 	Logout(ctx context.Context, sessionID string) error
 }
@@ -288,6 +290,11 @@ func (s *service) RefreshSession(ctx context.Context, sessionID string) (model.S
 // SessionTTL implements [Service].
 func (s *service) SessionTTL() time.Duration {
 	return s.sessionTTL
+}
+
+// LoginStateTTL implements [Service].
+func (s *service) LoginStateTTL() time.Duration {
+	return s.loginStateTTL
 }
 
 // Logout implements [Session].

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/subtle"
 	"errors"
 	"net/http"
 	"net/url"
@@ -27,6 +28,7 @@ type Middleware interface {
 type authMiddleware struct {
 	svc               Service
 	sessionTTL        time.Duration
+	loginStateTTL     time.Duration
 	sessionCookieName string
 	oidcCallbackPath  string
 	loginPath         string
@@ -46,6 +48,7 @@ func NewMiddleware(
 	return &authMiddleware{
 		svc:               svc,
 		sessionTTL:        svc.SessionTTL(),
+		loginStateTTL:     svc.LoginStateTTL(),
 		sessionCookieName: sessionCookieName,
 		oidcCallbackPath:  oidcCallbackPath,
 		loginPath:         loginPath,
@@ -164,6 +167,7 @@ func (m *authMiddleware) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	l.Debug().Str(xlog.FieldNext, next).Msg("redirecting to identity provider")
+	m.setLoginStateCookie(w, r, authReq.LoginID)
 	http.Redirect(w, r, authReq.URL, http.StatusSeeOther)
 }
 
@@ -174,9 +178,22 @@ func (m *authMiddleware) handleCallback(w http.ResponseWriter, r *http.Request) 
 	code := r.URL.Query().Get(paramCode)
 	if loginID == "" || code == "" {
 		l.Warn().Msg("received invalid oidc callback")
+		m.clearLoginStateCookie(w)
 		http.Redirect(w, r, m.loginPath, http.StatusSeeOther)
 		return
 	}
+
+	// The login state is stored server-side, but it must also be bound to the
+	// browser that started the flow. Otherwise an attacker can obtain a valid
+	// state/code pair for their own account and trick a victim into completing
+	// the flow, logging the victim into the attacker's session.
+	if !m.loginStateMatchesCookie(r, loginID) {
+		l.Warn().Msg("oidc callback state does not match login state cookie")
+		m.clearLoginStateCookie(w)
+		http.Redirect(w, r, m.loginPath, http.StatusSeeOther)
+		return
+	}
+	m.clearLoginStateCookie(w)
 
 	session, next, err := m.svc.ExchangeCode(r.Context(), loginID, code)
 	if err != nil {
@@ -300,6 +317,44 @@ func (m *authMiddleware) clearSessionCookie(w http.ResponseWriter) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
+}
+
+func (m *authMiddleware) loginStateCookieName() string {
+	return m.sessionCookieName + "-login"
+}
+
+func (m *authMiddleware) setLoginStateCookie(w http.ResponseWriter, r *http.Request, loginID string) {
+	expires := time.Now().Add(m.loginStateTTL)
+	http.SetCookie(w, &http.Cookie{
+		Name:     m.loginStateCookieName(),
+		Value:    loginID,
+		Path:     consts.RouteRoot,
+		Expires:  expires,
+		MaxAge:   int((m.loginStateTTL + time.Second - 1) / time.Second),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   requestIsHTTPS(r, m.trustedProxies),
+	})
+}
+
+func (m *authMiddleware) clearLoginStateCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     m.loginStateCookieName(),
+		Value:    "",
+		Path:     consts.RouteRoot,
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func (m *authMiddleware) loginStateMatchesCookie(r *http.Request, loginID string) bool {
+	cookie, err := r.Cookie(m.loginStateCookieName())
+	if err != nil || cookie.Value == "" {
+		return false
+	}
+
+	return subtle.ConstantTimeCompare([]byte(cookie.Value), []byte(loginID)) == 1
 }
 
 func (m *authMiddleware) isPublicPath(path string) bool {
