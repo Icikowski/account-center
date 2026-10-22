@@ -8,14 +8,19 @@ const (
 
 // Known HTTP headers.
 const (
-	HeaderAcceptLanguage  = "Accept-Language"
-	HeaderContentType     = "Content-Type"
-	HeaderCacheControl    = "Cache-Control"
-	HeaderTrueClientIP    = "True-Client-IP"
-	HeaderXForwardedFor   = "X-Forwarded-For"
-	HeaderXForwardedProto = "X-Forwarded-Proto"
-	HeaderXForwardedHost  = "X-Forwarded-Host"
-	HeaderXRealIP         = "X-Real-IP"
+	HeaderAcceptLanguage        = "Accept-Language"
+	HeaderContentType           = "Content-Type"
+	HeaderCacheControl          = "Cache-Control"
+	HeaderContentSecurityPolicy = "Content-Security-Policy"
+	HeaderPermissionsPolicy     = "Permissions-Policy"
+	HeaderReferrerPolicy        = "Referrer-Policy"
+	HeaderTrueClientIP          = "True-Client-IP"
+	HeaderXContentTypeOptions   = "X-Content-Type-Options"
+	HeaderXForwardedFor         = "X-Forwarded-For"
+	HeaderXForwardedProto       = "X-Forwarded-Proto"
+	HeaderXForwardedHost        = "X-Forwarded-Host"
+	HeaderXFrameOptions         = "X-Frame-Options"
+	HeaderXRealIP               = "X-Real-IP"
 )
 
 // Known HTTP cookie names.

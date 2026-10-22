@@ -63,6 +63,7 @@ func NewHandler(
 
 	r := chi.NewRouter()
 	r.Use(
+		xmiddleware.SecurityHeaders,
 		middleware.RequestID,
 		xmiddleware.RealIP(trustedProxies),
 		middleware.CleanPath,
