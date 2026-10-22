@@ -29,6 +29,7 @@ type authMiddleware struct {
 	svc               Service
 	sessionTTL        time.Duration
 	loginStateTTL     time.Duration
+	secureCookies     bool
 	sessionCookieName string
 	oidcCallbackPath  string
 	loginPath         string
@@ -49,6 +50,7 @@ func NewMiddleware(
 		svc:               svc,
 		sessionTTL:        svc.SessionTTL(),
 		loginStateTTL:     svc.LoginStateTTL(),
+		secureCookies:     svc.SecureCookies(),
 		sessionCookieName: sessionCookieName,
 		oidcCallbackPath:  oidcCallbackPath,
 		loginPath:         loginPath,
@@ -304,7 +306,7 @@ func (m *authMiddleware) setSessionCookie(w http.ResponseWriter, r *http.Request
 		MaxAge:   int((m.sessionTTL + time.Second - 1) / time.Second),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		Secure:   requestIsHTTPS(r, m.trustedProxies),
+		Secure:   m.secureCookies || requestIsHTTPS(r, m.trustedProxies),
 	})
 }
 
@@ -333,7 +335,7 @@ func (m *authMiddleware) setLoginStateCookie(w http.ResponseWriter, r *http.Requ
 		MaxAge:   int((m.loginStateTTL + time.Second - 1) / time.Second),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		Secure:   requestIsHTTPS(r, m.trustedProxies),
+		Secure:   m.secureCookies || requestIsHTTPS(r, m.trustedProxies),
 	})
 }
 

@@ -80,6 +80,8 @@ type Service interface {
 	SessionTTL() time.Duration
 	// LoginStateTTL returns the configured lifetime of transient OIDC login state.
 	LoginStateTTL() time.Duration
+	// SecureCookies reports whether cookies must always be marked as Secure.
+	SecureCookies() bool
 	// Logout removes the stored session and revokes provider-side tokens when supported.
 	Logout(ctx context.Context, sessionID string) error
 }
@@ -88,6 +90,7 @@ type service struct {
 	baseURL                                  string
 	clientID, clientSecret                   string
 	refreshBefore, sessionTTL, loginStateTTL time.Duration
+	secureCookies                            bool
 
 	store        store.SessionStore
 	provider     *oidc.Provider
@@ -138,6 +141,7 @@ func NewService(
 		refreshBefore: refreshBefore,
 		sessionTTL:    sessionTTL,
 		loginStateTTL: loginStateTTL,
+		secureCookies: secureCookiesForBaseURL(baseURL),
 		store:         store,
 		provider:      provider,
 		verifier: provider.Verifier(&oidc.Config{
@@ -295,6 +299,11 @@ func (s *service) SessionTTL() time.Duration {
 // LoginStateTTL implements [Service].
 func (s *service) LoginStateTTL() time.Duration {
 	return s.loginStateTTL
+}
+
+// SecureCookies implements [Service].
+func (s *service) SecureCookies() bool {
+	return s.secureCookies
 }
 
 // Logout implements [Session].
@@ -619,6 +628,19 @@ func requestBaseURL(r *http.Request, trustedProxies *TrustedProxies) (string, er
 		Scheme: scheme,
 		Host:   host,
 	}).String(), nil
+}
+
+func secureCookiesForBaseURL(baseURL string) bool {
+	if baseURL == "" {
+		return false
+	}
+
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return false
+	}
+
+	return parsed.Scheme == consts.SchemeHTTPS
 }
 
 func headerFirstValue(value string) string {
