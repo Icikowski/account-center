@@ -43,6 +43,8 @@ func (h *healthHandler) live(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (h *healthHandler) ready(w http.ResponseWriter, r *http.Request) {
+	l := zerolog.Ctx(r.Context())
+
 	checks := make([]string, 0, 3)
 	if h.catalogSource == nil || h.catalogSource.Current().Revision == 0 {
 		checks = append(checks, "catalog not ready")
@@ -53,13 +55,13 @@ func (h *healthHandler) ready(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.storage.Ping(r.Context()); err != nil {
-		checks = append(checks, "storage backend not ready: "+err.Error())
+		l.Error().Err(err).Msg("storage backend readiness check failed")
+		checks = append(checks, "storage backend not ready")
 	}
 
 	if len(checks) > 0 {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		if err := json.NewEncoder(w).Encode(checks); err != nil {
-			l := zerolog.Ctx(r.Context())
 			l.Error().Err(err).Msg("failed to encode health check response")
 		}
 		return
