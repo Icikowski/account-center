@@ -357,25 +357,26 @@ func (m *authMiddleware) sanitizeRedirectTarget(r *http.Request, candidate strin
 			return ""
 		}
 		host := m.requestHost(r)
-		if host == "" {
+		if host == "" || !strings.EqualFold(parsed.Host, host) {
 			return ""
 		}
-		if !strings.EqualFold(parsed.Host, host) {
-			return ""
-		}
-		target := parsed.EscapedPath()
-		if target == "" {
-			target = consts.RouteRoot
-		}
-		if parsed.RawQuery != "" {
-			target += "?" + parsed.RawQuery
-		}
-		return target
 	case strings.HasPrefix(candidate, "/") && !strings.HasPrefix(candidate, "//"):
-		return candidate
 	default:
 		return ""
 	}
+
+	target := parsed.EscapedPath()
+	if target == "" {
+		target = consts.RouteRoot
+	}
+	if !strings.HasPrefix(target, "/") || strings.HasPrefix(target, "//") || strings.Contains(target, `\`) {
+		return ""
+	}
+
+	if parsed.RawQuery != "" {
+		target += "?" + parsed.RawQuery
+	}
+	return target
 }
 
 func (m *authMiddleware) requestHost(r *http.Request) string {
