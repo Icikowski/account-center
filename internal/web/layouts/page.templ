@@ -2,6 +2,7 @@ package layouts
 
 import (
 	"git.sr.ht/~icikowski/account-center/internal/buildinfo"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
@@ -43,6 +44,10 @@ templ Page(title string, nav *NavigationItem) {
 			@collapsible.Script()
 		</head>
 		<body class="h-full">
+			if bd.User != nil {
+				<form id="refresh-form" method="post" action={ consts.RouteRefresh }></form>
+				<form id="logout-form" method="post" action={ consts.RouteLogout }></form>
+			}
 			@sidebarWrapper(nav, bd) {
 				{ children... }
 			}
@@ -461,7 +466,11 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 						@dropdown.Separator()
 						if bd.User != nil {
 							@dropdown.Item(dropdown.ItemProps{
-								Href: "/refresh",
+								PreventClose: true,
+								Attributes: templ.Attributes{
+									"type": "submit",
+									"form": "refresh-form",
+								},
 							}) {
 								<span class="flex items-center">
 									@icon.CloudSync(icon.Props{Class: "size-4 mr-2"})
@@ -469,7 +478,11 @@ templ sidebarContent(nav *NavigationItem, bd BaseData) {
 								</span>
 							}
 							@dropdown.Item(dropdown.ItemProps{
-								Href: "/logout",
+								PreventClose: true,
+								Attributes: templ.Attributes{
+									"type": "submit",
+									"form": "logout-form",
+								},
 							}) {
 								<span class="flex items-center">
 									@icon.LogOut(icon.Props{Class: "size-4 mr-2"})

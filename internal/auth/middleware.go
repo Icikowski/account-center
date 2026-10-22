@@ -215,6 +215,10 @@ func (m *authMiddleware) handleCallback(w http.ResponseWriter, r *http.Request) 
 }
 
 func (m *authMiddleware) handleRefresh(w http.ResponseWriter, r *http.Request) {
+	if !requirePost(w, r) {
+		return
+	}
+
 	l := zerolog.Ctx(r.Context())
 
 	sessionID, ok := m.sessionIDFromRequest(r)
@@ -250,6 +254,10 @@ func (m *authMiddleware) handleRefresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *authMiddleware) handleLogout(w http.ResponseWriter, r *http.Request) {
+	if !requirePost(w, r) {
+		return
+	}
+
 	l := zerolog.Ctx(r.Context())
 
 	if sessionID, ok := m.sessionIDFromRequest(r); ok {
@@ -261,6 +269,16 @@ func (m *authMiddleware) handleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 	m.clearSessionCookie(w)
 	http.Redirect(w, r, consts.RouteRoot, http.StatusSeeOther)
+}
+
+func requirePost(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method == http.MethodPost {
+		return true
+	}
+
+	w.Header().Set(consts.HeaderAllow, http.MethodPost)
+	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	return false
 }
 
 func (m *authMiddleware) redirectToLogin(w http.ResponseWriter, r *http.Request, next string) {

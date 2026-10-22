@@ -9,6 +9,7 @@ const (
 // Known HTTP headers.
 const (
 	HeaderAcceptLanguage        = "Accept-Language"
+	HeaderAllow                 = "Allow"
 	HeaderContentType           = "Content-Type"
 	HeaderCacheControl          = "Cache-Control"
 	HeaderContentSecurityPolicy = "Content-Security-Policy"
