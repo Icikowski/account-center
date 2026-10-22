@@ -111,7 +111,7 @@ func NewService(
 	opts ...Option,
 ) (Service, error) {
 	options := serviceOptions{
-		httpClient: http.DefaultClient,
+		httpClient: &http.Client{Timeout: consts.ClientTimeoutOIDC},
 		randReader: rand.Reader,
 	}
 	for _, opt := range opts {

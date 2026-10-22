@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/buildinfo"
 	"git.sr.ht/~icikowski/account-center/internal/catalog"
 	"git.sr.ht/~icikowski/account-center/internal/config"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
 	"git.sr.ht/~icikowski/account-center/internal/evaluator"
 	"git.sr.ht/~icikowski/account-center/internal/knowledgebase"
 	"git.sr.ht/~icikowski/account-center/internal/model"
@@ -109,8 +110,13 @@ func main() {
 	)
 
 	server := &http.Server{
-		Addr:    cfg.Server.ServerAddr(),
-		Handler: webHandler,
+		Addr:              cfg.Server.ServerAddr(),
+		Handler:           webHandler,
+		ReadHeaderTimeout: consts.ServerTimeoutReadHeader,
+		ReadTimeout:       consts.ServerTimeoutRead,
+		WriteTimeout:      consts.ServerTimeoutWrite,
+		IdleTimeout:       consts.ServerTimeoutIdle,
+		MaxHeaderBytes:    consts.ServerMaxHeaderBytes,
 	}
 
 	go func() {
