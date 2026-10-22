@@ -318,9 +318,14 @@ func (m *authMiddleware) isPublicPath(path string) bool {
 func (m *authMiddleware) hasRegisteredHandler(r *http.Request) bool {
 	rctx := chi.RouteContext(r.Context())
 	probe := chi.NewRouteContext()
-	probe.Routes = rctx.Routes
 
-	return probe.Routes.Match(probe, r.Method, r.URL.Path)
+	probe.Routes = rctx.Routes
+	routePath := rctx.RoutePath
+	if routePath == "" {
+		routePath = r.URL.Path
+	}
+
+	return probe.Routes.Match(probe, r.Method, routePath)
 }
 
 func requestIsHTTPS(r *http.Request, trustedProxies *TrustedProxies) bool {

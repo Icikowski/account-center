@@ -94,6 +94,10 @@ func (h *uiHandler) splash(w http.ResponseWriter, r *http.Request) {
 
 func (h *uiHandler) catalog(w http.ResponseWriter, r *http.Request) {
 	session := auth.FromContext(r.Context())
+	if session == nil {
+		http.Redirect(w, r, consts.RouteLogin, http.StatusSeeOther)
+		return
+	}
 
 	es := h.evaluator.Evaluate(r.Context(), h.catalogSource, session.User)
 	sort.SliceStable(es, func(i, j int) bool {
