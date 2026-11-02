@@ -19,7 +19,7 @@ type URL struct {
 }
 
 // MarshalJSON implements [json.Marshaler].
-func (u *URL) MarshalJSON() ([]byte, error) {
+func (u URL) MarshalJSON() ([]byte, error) {
 	return json.Marshal(u.String())
 }
 
@@ -37,8 +37,8 @@ func (u *URL) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalYAML implements [yaml.Marshaler].
-func (u *URL) MarshalYAML() (any, error) {
-	return yaml.Marshal(u.String())
+func (u URL) MarshalYAML() (any, error) {
+	return u.String(), nil
 }
 
 // UnmarshalYAML implements [yaml.Unmarshaler].
