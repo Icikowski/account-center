@@ -60,6 +60,7 @@ func (h *healthHandler) ready(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(checks) > 0 {
+		w.Header().Set(consts.HeaderContentType, consts.MIMEApplicationJSON)
 		w.WriteHeader(http.StatusServiceUnavailable)
 		if err := json.NewEncoder(w).Encode(checks); err != nil {
 			l.Error().Err(err).Msg("failed to encode health check response")
