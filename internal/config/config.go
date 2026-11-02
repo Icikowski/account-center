@@ -1,11 +1,11 @@
 package config
 
 import (
-	"fmt"
 	"net"
 	"net/url"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -28,7 +28,7 @@ type Config struct {
 
 // ServerAddr returns the server address in the format "address:port".
 func (c *ServerConfig) ServerAddr() string {
-	return fmt.Sprintf("%s:%d", c.Address, c.Port)
+	return net.JoinHostPort(c.Address, strconv.Itoa(int(c.Port)))
 }
 
 // Validate checks if the whole [Config] is valid.
@@ -305,6 +305,8 @@ func (c LogConfig) Validate() error {
 }
 
 func parseTrustedProxyCIDR(value string) (net.IP, *net.IPNet, error) {
+	value = strings.TrimSpace(value)
+
 	if ip := net.ParseIP(value); ip != nil {
 		bits := 32
 		if ip.To4() == nil {
