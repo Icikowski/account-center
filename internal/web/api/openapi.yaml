@@ -98,7 +98,7 @@ components:
       name: account-center-session
       description: |
         Session cookie obtained through the OIDC login flow. The default name is `account-center-session`
-        and can be changed with `AC_SESSION_COOKIE_NAME`.
+        and can be changed with `AC_AUTH_SESSION_COOKIE_NAME`.
   headers:
     CacheControl:
       description: Always `no-store`.
