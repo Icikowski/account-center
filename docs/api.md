@@ -2,7 +2,7 @@
 
 **Account Center** exposes a small, read-only JSON API under `/api/v1`. It is meant for non-HTML clients such as the [browser extension](browser-extension.md) or a PWA service worker.
 
-The machine-readable description is available as an OpenAPI 3.1 document: [`internal/web/api/openapi.yaml`](../internal/web/api/openapi.yaml). Every instance serves it at `/api/openapi.yaml`.
+The machine-readable description is available as an OpenAPI 3.2 document: [`internal/web/api/openapi.yaml`](../internal/web/api/openapi.yaml). Every instance serves it at `/api/openapi.yaml`.
 
 ## Design
 

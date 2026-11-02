@@ -77,7 +77,8 @@ Solution's highlights include:
 - Go 1.27+
 - [`task`](https://taskfile.dev)
 - [`golangci-lint`](https://golangci-lint.run)
-- [`tailwindcss`](https://github.com/tailwindlabs/tailwindcss) binary (or `npx` if Tailwin CLI not installed)
+- [`yq`](https://github.com/mikefarah/yq) (used by `go generate` for locale files)
+- [`tailwindcss`](https://github.com/tailwindlabs/tailwindcss) binary (or `npx` if the Tailwind CLI is not installed)
 
 ### Common commands
 

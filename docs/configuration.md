@@ -77,7 +77,7 @@ Redis keys use this shape:
 {AC_REDIS_KEY_PREFIX}:{kind}:{id}
 ```
 
-Where `kind` is `login-state` or `session`.
+Where `kind` is `login-state`, `session` or `evaluation`.
 
 ## Reverse proxies
 
