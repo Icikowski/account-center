@@ -45,6 +45,7 @@ RUN set -eu; \
 RUN wget -nv -O- https://golangci-lint.run/install.sh | sh -s -- -b /usr/bin
 RUN wget -nv -O- https://taskfile.dev/install.sh | sh -s -- -b /usr/bin
 RUN go mod download -x
+RUN go install github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ@latest
 RUN task generate fmt build-static build-healthcheck
 
 FROM gcr.io/distroless/static:nonroot

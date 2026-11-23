@@ -4,6 +4,7 @@ go 1.27.4
 
 tool (
 	github.com/a-h/templ/cmd/templ
+	github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ
 	github.com/nicksnyder/go-i18n/v2/goi18n
 	github.com/templui/templui/cmd/templui
 )
@@ -34,9 +35,11 @@ require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/andybalholm/brotli v1.2.7 // indirect
+	github.com/axadrn/shadcn-templ/v2 v2.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cli/browser v1.3.0 // indirect
+	github.com/evanw/esbuild v0.28.2 // indirect
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.9 // indirect
 	github.com/mattn/go-colorable v0.1.16 // indirect

@@ -5,6 +5,8 @@ vars:
     sh: command -v tailwindcss >/dev/null 2>&1 && echo "tailwindcss" || echo "npx tailwindcss@latest"
   TEMPL_CMD:
     sh: command -v templ >/dev/null 2>&1 && echo "templ" || echo "go tool templ"
+  SHADCN_TEMPL_CMD:
+    sh: command -v shadcn-templ >/dev/null 2>&1 && echo "shadcn-templ" || echo "go tool shadcn-templ"
   BUILD_VERSION:
     sh: echo ${BUILD_VERSION:-$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "dev")}
   BUILD_GIT_REF:
@@ -75,5 +77,8 @@ tasks:
         -i ./internal/web/assets/sources/input.css \
         -o ./internal/web/assets/css/style.css \
         --watch
+  scripts:
+    cmd: |
+      {{.SHADCN_TEMPL_CMD}} bundle --watch
   dev:
     cmd: task --parallel tailwind templ

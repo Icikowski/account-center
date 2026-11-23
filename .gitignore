@@ -10,3 +10,4 @@ bin
 
 **/*_templ.go
 internal/web/assets/css/style.css
+internal/web/assets/js/shadcn-templ-*.js
