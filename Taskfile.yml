@@ -28,6 +28,7 @@ tasks:
     cmds:
       - go generate ./...
       - "{{.TEMPL_CMD}} generate"
+      - "{{.SHADCN_TEMPL_CMD}} bundle"
       - "{{.TAILWIND_CMD}} -i ./internal/web/assets/sources/input.css -o ./internal/web/assets/css/style.css"
   build:
     cmd: go build -o ./bin/account-center ./cmd/account-center
@@ -81,4 +82,4 @@ tasks:
     cmd: |
       {{.SHADCN_TEMPL_CMD}} bundle --watch
   dev:
-    cmd: task --parallel tailwind templ
+    cmd: task --parallel tailwind scripts templ

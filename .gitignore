@@ -8,6 +8,8 @@
 local
 bin
 
+# Generated code and assets (run `task generate`)
 **/*_templ.go
+internal/web/components/scripts_bundle.go
 internal/web/assets/css/style.css
 internal/web/assets/js/shadcn-templ-*.js

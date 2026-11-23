@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "dir": "internal/web/assets/js",
+    "path": "/assets/js"
+  },
   "$schema": "https://shadcn-templ.com/schema/components.json",
   "style": "base-nova",
   "tailwind": {
@@ -10,13 +14,9 @@
   "iconLibrary": "lucide",
   "menuColor": "default",
   "menuAccent": "subtle",
-  "scripts": {
-    "dir": "internal/web/assets/js",
-    "path": "/assets/js"
-  },
   "aliases": {
     "components": "git.sr.ht/~icikowski/account-center/internal/web/components",
-    "ui": "git.sr.ht/~icikowski/account-center/internal/web/components",
-    "utils": "git.sr.ht/~icikowski/account-center/internal/web/utils"
+    "utils": "git.sr.ht/~icikowski/account-center/internal/web/utils",
+    "ui": "git.sr.ht/~icikowski/account-center/internal/web/components"
   }
 }
