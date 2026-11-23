@@ -1,0 +1,161 @@
+package layouts
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/consts"
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
+	"git.sr.ht/~icikowski/account-center/internal/web/components"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/breadcrumb"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdownmenu"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/separator"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
+)
+
+templ Page(title string, nav *NavigationItem) {
+	{{ bd := FromContext(ctx) }}
+	<!DOCTYPE html>
+	<html class="h-full" lang={ i18n.T(ctx, i18n.KeyLanguageCode) }>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>
+				if title != "" {
+					{ title } |
+				}
+				if bd.InstanceName != "" {
+					{ bd.InstanceName } -
+				}
+				{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+			</title>
+			<script src="/assets/js/page.js"></script>
+			<link rel="stylesheet" href="/assets/css/style.css"/>
+			<link rel="icon" href="/assets/img/favicon.png" type="image/png"/>
+			<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"/>
+			<link rel="preload" href="/assets/fonts/inter/inter-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>
+			@components.Scripts()
+		</head>
+		<body class="h-full">
+			if bd.User != nil {
+				<form id="refresh-form" method="post" action={ consts.RouteRefresh }></form>
+				<form id="logout-form" method="post" action={ consts.RouteLogout }></form>
+			}
+			@sidebar.Provider(sidebar.ProviderProps{
+				DisableDefaultOpen: xmiddleware.IsSidebarCollapsed(ctx),
+				Attributes: templ.Attributes{
+					"style": "--sidebar-width: calc(var(--spacing) * 72); --sidebar-width-icon: 3rem; --header-height: calc(var(--spacing) * 12);",
+				},
+			}) {
+				@appSidebar(nav, bd)
+				@sidebar.Inset(sidebar.InsetProps{Class: "min-w-0"}) {
+					@siteHeader(title, nav)
+					<div class="flex flex-1 flex-col gap-4 p-4 pt-0 md:gap-6 md:py-6">
+						{ children... }
+					</div>
+				}
+			}
+		</body>
+	</html>
+}
+
+templ siteHeader(title string, nav *NavigationItem) {
+	{{
+		headerTitle := title
+		if headerTitle == "" {
+			headerTitle = i18n.T(ctx, i18n.KeyGeneralAccountCenter)
+		}
+	}}
+	<header class="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+		<div class="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+			@sidebar.Trigger(sidebar.TriggerProps{Class: "-ml-1"})
+			@separator.Separator(separator.Props{
+				Orientation: separator.OrientationVertical,
+				Class:       "mx-2 h-4 data-vertical:self-auto",
+			})
+			if nav != nil {
+				@breadcrumbs(nav)
+			} else {
+				<h1 class="text-base font-medium">{ headerTitle }</h1>
+			}
+		</div>
+	</header>
+}
+
+templ breadcrumbs(nav *NavigationItem) {
+	{{
+		var path []*NavigationItem
+		if nav != nil && nav.Parent != nil {
+			path = nav.Parent.Breadcrumbs()
+		}
+	}}
+	<div class="md:hidden">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
+				@breadcrumb.Item() {
+					@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
+						@icon.House(icon.Props{Class: "size-4"})
+					}
+				}
+				if nav != nil {
+					@breadcrumb.Separator()
+					@breadcrumb.Item() {
+						if len(path) != 0 {
+							@dropdownmenu.DropdownMenu(dropdownmenu.Props{ID: "app-breadcrumbs-menu"}) {
+								@button.Button(button.Props{
+									Size:       button.SizeIconSm,
+									Variant:    button.VariantGhost,
+									Class:      "size-7",
+									Attributes: dropdownmenu.Trigger(ctx),
+								}) {
+									@icon.Ellipsis(icon.Props{Class: "size-4"})
+								}
+								@dropdownmenu.Content(dropdownmenu.ContentProps{Align: dropdownmenu.AlignStart}) {
+									for _, item := range path {
+										@dropdownmenu.Item(dropdownmenu.ItemProps{Href: item.FullURL()}) {
+											{ i18n.T(ctx, item.Key) }
+										}
+									}
+									@dropdownmenu.Item(dropdownmenu.ItemProps{Disabled: true}) {
+										{ i18n.T(ctx, nav.Key) }
+									}
+								}
+							}
+						} else {
+							@breadcrumb.Page() {
+								{ i18n.T(ctx, nav.Key) }
+							}
+						}
+					}
+				}
+			}
+		}
+	</div>
+	<div class="hidden md:block">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
+				@breadcrumb.Item() {
+					@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
+						@icon.House(icon.Props{Class: "size-4"})
+					}
+				}
+				if nav != nil {
+					for _, item := range path {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@breadcrumb.Link(breadcrumb.LinkProps{Href: item.FullURL()}) {
+								{ i18n.T(ctx, item.Key) }
+							}
+						}
+					}
+					@breadcrumb.Separator()
+					@breadcrumb.Item() {
+						@breadcrumb.Page() {
+							{ i18n.T(ctx, nav.Key) }
+						}
+					}
+				}
+			}
+		}
+	</div>
+}

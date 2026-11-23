@@ -5,6 +5,13 @@ function updateTheme() {
   } else {
     document.documentElement.classList.remove("dark");
   }
+  var options = document.querySelectorAll("[data-theme-option]");
+  for (var i = 0; i < options.length; i++) {
+    options[i].setAttribute(
+      "aria-pressed",
+      options[i].getAttribute("data-theme-option") === t ? "true" : "false",
+    );
+  }
 }
 
 function setTheme(t) {
@@ -21,6 +28,16 @@ function setLanguage(l) {
   location.reload();
 }
 
+function submitForm(id) {
+  var form = document.getElementById(id);
+  if (form) {
+    form.requestSubmit();
+  }
+}
+
 (function () {
   updateTheme();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", updateTheme);
+  }
 })();

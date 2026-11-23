@@ -1,0 +1,47 @@
+package templates
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
+	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
+)
+
+templ ErrorNotFound() {
+	@errorBase(i18n.KeyErrorNotFound, i18n.KeyErrorNotFoundMessage, icon.FileExclamationPoint)
+}
+
+templ ErrorMethodNotAllowed() {
+	@errorBase(i18n.KeyErrorMethodNotAllowed, i18n.KeyErrorMethodNotAllowedMessage, icon.MonitorStop)
+}
+
+templ errorBase(nameKey, messageKey i18n.Key, iconFn func(...icon.Props) templ.Component) {
+	@layouts.Page(i18n.T(ctx, nameKey), nil) {
+		<div class="w-full">
+			@card.Card() {
+				@card.Header() {
+					<div class="flex justify-between items-center">
+						<div class="max-w-full">
+							@card.Title() {
+								{ i18n.T(ctx, nameKey) }
+							}
+						</div>
+						@iconFn(icon.Props{Class: "size-12 text-red-500"})
+					</div>
+				}
+				@card.Content() {
+					{ i18n.T(ctx, messageKey) }
+				}
+				@card.Footer() {
+					@button.Button(button.Props{
+						Class: "w-full",
+						Href:  "/",
+					}) {
+						{ i18n.T(ctx, i18n.KeyErrorGoHome) }
+					}
+				}
+			}
+		</div>
+	}
+}

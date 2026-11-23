@@ -7,6 +7,8 @@ vars:
     sh: command -v templ >/dev/null 2>&1 && echo "templ" || echo "go tool templ"
   SHADCN_TEMPL_CMD:
     sh: command -v shadcn-templ >/dev/null 2>&1 && echo "shadcn-templ" || echo "go tool shadcn-templ"
+  SHADCN_PRESET: b2
+  SHADCN_COMPONENTS: aspect-ratio avatar badge breadcrumb button button-group card dialog dropdown-menu empty field icon separator sidebar table
   BUILD_VERSION:
     sh: echo ${BUILD_VERSION:-$(git describe --tags --exact-match ${GIT_REF:-HEAD} 2>/dev/null || echo "dev")}
   BUILD_GIT_REF:
@@ -23,6 +25,10 @@ tasks:
   deps:
     cmds:
       - go get -u ./...
+      - go get -u github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ github.com/a-h/templ/cmd/templ
+      - "{{.SHADCN_TEMPL_CMD}} init --preset {{.SHADCN_PRESET}} --css internal/web/assets/sources/input.css --force"
+      - "{{.SHADCN_TEMPL_CMD}} add {{.SHADCN_COMPONENTS}} --overwrite"
+      - "{{.SHADCN_TEMPL_CMD}} bundle"
       - go tool templui --force --installed add
   generate:
     cmds:

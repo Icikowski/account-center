@@ -12,7 +12,7 @@
   },
   "rtl": false,
   "iconLibrary": "lucide",
-  "menuColor": "default",
+  "menuColor": "default-translucent",
   "menuAccent": "subtle",
   "aliases": {
     "components": "git.sr.ht/~icikowski/account-center/internal/web/components",

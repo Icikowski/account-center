@@ -10,7 +10,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
 )
 
-//go:embed css/* js/* img/*
+//go:embed css/* js/* img/* fonts/*
 var assetsFS embed.FS
 
 type assetsHandler struct {

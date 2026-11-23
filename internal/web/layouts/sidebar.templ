@@ -1,0 +1,279 @@
+package layouts
+
+import (
+	"strings"
+
+	"git.sr.ht/~icikowski/account-center/internal/consts"
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/avatar"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/buttongroup"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/dialog"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdownmenu"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
+)
+
+templ appSidebar(nav *NavigationItem, bd BaseData) {
+	{{
+		brandName := i18n.T(ctx, i18n.KeyGeneralAccountCenter)
+		if bd.InstanceName != "" {
+			brandName = bd.InstanceName
+		}
+	}}
+	@sidebar.Sidebar(sidebar.Props{
+		Collapsible: sidebar.CollapsibleIcon,
+		Variant:     sidebar.VariantInset,
+	}) {
+		@sidebar.Header() {
+			@sidebar.Menu() {
+				@sidebar.MenuItem() {
+					@dialog.Dialog() {
+						@sidebar.MenuButton(sidebar.MenuButtonProps{
+							Size:       sidebar.MenuButtonSizeLg,
+							Class:      "p-1.5!",
+							Tooltip:    brandName,
+							Attributes: dialog.Trigger(ctx),
+						}) {
+							<img
+								src="/assets/img/logo.png"
+								alt=""
+								class="size-8 shrink-0 rounded-lg object-cover"
+							/>
+							<div class="grid flex-1 text-left text-sm leading-tight">
+								<span class="truncate font-semibold">{ brandName }</span>
+								if bd.InstanceName != "" {
+									<span class="truncate text-xs text-muted-foreground">
+										{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+									</span>
+								}
+							</div>
+						}
+						@dialog.Content(dialog.ContentProps{Class: "sm:max-w-lg"}) {
+							@aboutDialog(bd)
+						}
+					}
+				}
+			}
+		}
+		@sidebar.Content() {
+			@navMain(nav, bd)
+		}
+		@sidebar.Footer() {
+			@themeSwitcher()
+			@navUser(bd)
+		}
+		@sidebar.Rail()
+	}
+}
+
+templ themeSwitcher() {
+	<div class="group-data-[collapsible=icon]:hidden">
+		@buttongroup.ButtonGroup(buttongroup.Props{Class: "w-full"}) {
+			@button.Button(button.Props{
+				Type:    button.TypeButton,
+				Size:    button.SizeIcon,
+				Variant: button.VariantOutline,
+				Class:   "flex-1 aria-pressed:bg-secondary aria-pressed:text-secondary-foreground",
+				Attributes: templ.Attributes{
+					"data-theme-option": "light",
+					"aria-pressed":      "false",
+					"aria-label":        i18n.T(ctx, i18n.KeyThemeLight),
+					"title":             i18n.T(ctx, i18n.KeyThemeLight),
+					"onclick":           templ.JSFuncCall("setTheme", "light"),
+				},
+			}) {
+				@icon.Sun(icon.Props{Class: "size-4"})
+			}
+			@button.Button(button.Props{
+				Type:    button.TypeButton,
+				Size:    button.SizeIcon,
+				Variant: button.VariantOutline,
+				Class:   "flex-1 aria-pressed:bg-secondary aria-pressed:text-secondary-foreground",
+				Attributes: templ.Attributes{
+					"data-theme-option": "dark",
+					"aria-pressed":      "false",
+					"aria-label":        i18n.T(ctx, i18n.KeyThemeDark),
+					"title":             i18n.T(ctx, i18n.KeyThemeDark),
+					"onclick":           templ.JSFuncCall("setTheme", "dark"),
+				},
+			}) {
+				@icon.Moon(icon.Props{Class: "size-4"})
+			}
+			@button.Button(button.Props{
+				Type:    button.TypeButton,
+				Size:    button.SizeIcon,
+				Variant: button.VariantOutline,
+				Class:   "flex-1 aria-pressed:bg-secondary aria-pressed:text-secondary-foreground",
+				Attributes: templ.Attributes{
+					"data-theme-option": "auto",
+					"aria-pressed":      "false",
+					"aria-label":        i18n.T(ctx, i18n.KeyGeneralSystem),
+					"title":             i18n.T(ctx, i18n.KeyGeneralSystem),
+					"onclick":           templ.JSFuncCall("setTheme", "auto"),
+				},
+			}) {
+				@icon.SunMoon(icon.Props{Class: "size-4"})
+			}
+		}
+	</div>
+}
+
+templ navMain(current *NavigationItem, bd BaseData) {
+	@sidebar.Group() {
+		@sidebar.GroupLabel() {
+			{ i18n.T(ctx, i18n.KeyLabelResources) }
+		}
+		@sidebar.Menu() {
+			for _, entry := range sidebarNavigation(bd) {
+				@sidebar.MenuItem() {
+					@sidebar.MenuButton(sidebar.MenuButtonProps{
+						Href:     entry.Item.URL,
+						Tooltip:  i18n.T(ctx, entry.Item.Key),
+						IsActive: entry.Item.IsActive(current),
+					}) {
+						@entry.Icon()
+						<span>{ i18n.T(ctx, entry.Item.Key) }</span>
+						if entry.Badge > 0 {
+							@sidebar.MenuBadge() {
+								{ entry.Badge }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+templ navUser(bd BaseData) {
+	{{
+		userFullName := i18n.T(ctx, i18n.KeyAuthUnknownUser)
+		userEmail := i18n.T(ctx, i18n.KeyAuthNoEmail)
+		if bd.User != nil {
+			if strings.TrimSpace(bd.User.FullName) != "" {
+				userFullName = bd.User.FullName
+			}
+			if strings.TrimSpace(bd.User.Email) != "" {
+				userEmail = bd.User.Email
+			}
+		}
+	}}
+	@sidebar.Menu() {
+		@sidebar.MenuItem() {
+			@dropdownmenu.DropdownMenu(dropdownmenu.Props{ID: "app-nav-user-menu"}) {
+				@sidebar.MenuButton(sidebar.MenuButtonProps{
+					Size:       sidebar.MenuButtonSizeLg,
+					Class:      "aria-expanded:bg-muted",
+					Tooltip:    userFullName,
+					Attributes: dropdownmenu.Trigger(ctx),
+				}) {
+					@avatar.Avatar(avatar.Props{Class: "size-8 overflow-hidden rounded-lg after:rounded-lg"}) {
+						@avatar.Image(avatar.ImageProps{
+							Src:   bd.User.ProfilePictureURL(),
+							Alt:   userFullName,
+							Class: "rounded-lg",
+						})
+						@avatar.Fallback(avatar.FallbackProps{Class: "rounded-lg"}) {
+							@icon.User(icon.Props{Class: "size-4"})
+						}
+					}
+					<div class="grid flex-1 text-left text-sm leading-tight">
+						<span class="truncate font-medium">{ userFullName }</span>
+						<span class="truncate text-xs text-muted-foreground">{ userEmail }</span>
+					</div>
+					@icon.ChevronsUpDown(icon.Props{Class: "ml-auto size-4"})
+				}
+				@dropdownmenu.Content(dropdownmenu.ContentProps{
+					Class:      "min-w-56",
+					Side:       dropdownmenu.SideRight,
+					Align:      dropdownmenu.AlignEnd,
+					SideOffset: 4,
+				}) {
+					@dropdownmenu.Sub() {
+						@dropdownmenu.SubTrigger() {
+							@icon.Globe()
+							{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
+						}
+						@dropdownmenu.SubContent() {
+							@dropdownmenu.Group() {
+								for _, lang := range i18n.AvailableLanguages() {
+									@dropdownmenu.Item(dropdownmenu.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": templ.JSFuncCall("setLanguage", lang.Code),
+										},
+									}) {
+										{ i18n.T(ctx, lang.Name) }
+									}
+								}
+								@dropdownmenu.Item(dropdownmenu.ItemProps{
+									Attributes: templ.Attributes{
+										"onclick": templ.JSFuncCall("setLanguage", ""),
+									},
+								}) {
+									{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+								}
+							}
+						}
+					}
+					if bd.ShowBrowserExtensions {
+						@dropdownmenu.Sub() {
+							@dropdownmenu.SubTrigger() {
+								@icon.Puzzle()
+								{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensions) }
+							}
+							@dropdownmenu.SubContent() {
+								@dropdownmenu.Group() {
+									@dropdownmenu.Item(dropdownmenu.ItemProps{
+										Href:   "https://addons.mozilla.org/firefox/addon/account-center/",
+										Target: "_blank",
+									}) {
+										{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsFirefox) }
+									}
+									@dropdownmenu.Item(dropdownmenu.ItemProps{
+										Href:   "https://chromewebstore.google.com/detail/ngjhhagcpndonjabkbdmgfgephejmkgi/",
+										Target: "_blank",
+									}) {
+										{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsChrome) }
+									}
+								}
+							}
+						}
+					}
+					@dropdownmenu.Separator()
+					if bd.User != nil {
+						@dropdownmenu.Item(dropdownmenu.ItemProps{
+							Attributes: templ.Attributes{
+								"onclick": templ.JSFuncCall("submitForm", "refresh-form"),
+							},
+						}) {
+							@icon.CloudSync()
+							{ i18n.T(ctx, i18n.KeyAuthRefresh) }
+						}
+						@dropdownmenu.Item(dropdownmenu.ItemProps{
+							Attributes: templ.Attributes{
+								"onclick": templ.JSFuncCall("submitForm", "logout-form"),
+							},
+						}) {
+							@icon.LogOut()
+							{ i18n.T(ctx, i18n.KeyAuthLogout) }
+						}
+					} else {
+						@dropdownmenu.Item(dropdownmenu.ItemProps{Href: consts.RouteLogin}) {
+							@icon.LogIn()
+							{ i18n.T(ctx, i18n.KeyAuthLogin) }
+						}
+					}
+				}
+			}
+		}
+	}
+	<script type="module" nonce={ templ.GetNonce(ctx) }>
+		// Keep the footer menu at the bottom of the viewport on mobile.
+		const menu = document.getElementById("app-nav-user-menu")?.parentElement;
+		window.templ.sidebar.onMobileChange((isMobile) => {
+			if (!menu?.isConnected) return false;
+			menu.setAttribute("data-templ-side", isMobile ? "bottom" : "right");
+		});
+	</script>
+}
