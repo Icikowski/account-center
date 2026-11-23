@@ -16,8 +16,8 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xhttp"
 	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
-	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
-	"git.sr.ht/~icikowski/account-center/internal/web/templates"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/layouts"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/templates"
 )
 
 type uiHandler struct {

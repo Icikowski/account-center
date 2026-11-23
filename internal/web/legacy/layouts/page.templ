@@ -1,0 +1,599 @@
+package layouts
+
+import (
+	"git.sr.ht/~icikowski/account-center/internal/buildinfo"
+	"git.sr.ht/~icikowski/account-center/internal/consts"
+	"git.sr.ht/~icikowski/account-center/internal/i18n"
+	"git.sr.ht/~icikowski/account-center/internal/shared/xmiddleware"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/avatar"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/badge"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/breadcrumb"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/button"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/collapsible"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/dialog"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/dropdown"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/icon"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/sidebar"
+	"git.sr.ht/~icikowski/account-center/internal/web/legacy/components/table"
+	"github.com/templui/templui/components/separator"
+	"strings"
+)
+
+templ Page(title string, nav *NavigationItem) {
+	{{ bd := FromContext(ctx) }}
+	<!DOCTYPE html>
+	<html class="h-full" lang={ i18n.T(ctx, i18n.KeyLanguageCode) }>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>
+				if title != "" {
+					{ title } |
+				}
+				if bd.InstanceName != "" {
+					{ bd.InstanceName } -
+				}
+				{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+			</title>
+			<script src="/assets/js/page.js"></script>
+			<link rel="stylesheet" href="/assets/css/style.css"/>
+			<link rel="icon" href="/assets/img/favicon.png" type="image/png"/>
+			<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"/>
+			@sidebar.Script()
+			@dialog.Script()
+			@collapsible.Script()
+			@dropdown.Script()
+		</head>
+		<body class="h-full">
+			if bd.User != nil {
+				<form id="refresh-form" method="post" action={ consts.RouteRefresh }></form>
+				<form id="logout-form" method="post" action={ consts.RouteLogout }></form>
+			}
+			@sidebarWrapper(nav, bd) {
+				{ children... }
+			}
+		</body>
+	</html>
+}
+
+templ sidebarWrapper(nav *NavigationItem, bd BaseData) {
+	@sidebar.Layout() {
+		@sidebar.Sidebar(sidebar.Props{
+			Collapsible: sidebar.CollapsibleIcon,
+			Variant:     sidebar.VariantFloating,
+			Collapsed:   xmiddleware.IsSidebarCollapsed(ctx),
+		}) {
+			@sidebarContent(nav, bd)
+		}
+		@sidebar.Inset(sidebar.InsetProps{Class: "min-w-0"}) {
+			<div class="flex h-full flex-col pbe-2 px-6">
+				<div class="flex h-14 items-center gap-4">
+					@sidebar.Trigger()
+					@sidebarBreadcrumbs(nav)
+				</div>
+				{ children... }
+			</div>
+		}
+	}
+}
+
+templ sidebarContent(nav *NavigationItem, bd BaseData) {
+	@sidebar.Header() {
+		@sidebar.Menu() {
+			@sidebar.MenuItem() {
+				@dialog.Dialog() {
+					@dialog.Trigger() {
+						@sidebar.MenuButton(sidebar.MenuButtonProps{
+							Size: sidebar.MenuButtonSizeLg,
+						}) {
+							@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
+								@avatar.Image(avatar.ImageProps{
+									Src: "/assets/img/logo.png",
+								})
+							}
+							<div class="grid flex-1 text-left text-sm leading-tight">
+								if bd.InstanceName != "" {
+									<span class="truncate font-semibold text-left">{ bd.InstanceName }</span>
+									<span class="truncate text-xs text-left">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+								} else {
+									<span class="truncate font-semibold text-left">{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }</span>
+								}
+							</div>
+						}
+					}
+					@dialog.Content() {
+						@dialog.Header() {
+							<div class="flex items-center gap-4">
+								@avatar.Avatar(avatar.Props{
+									Class: "rounded-lg",
+								}) {
+									@avatar.Image(avatar.ImageProps{
+										Src: "/assets/img/logo.png",
+										Alt: i18n.T(ctx, i18n.KeyGeneralAccountCenter),
+									})
+								}
+								<div class="max-w-full">
+									@dialog.Title(dialog.TitleProps{
+										Class: "text-left",
+									}) {
+										{ i18n.T(ctx, i18n.KeyGeneralAccountCenter) }
+									}
+									if bd.InstanceName != "" {
+										@dialog.Description(dialog.DescriptionProps{
+											Class: "text-left",
+										}) {
+											{ bd.InstanceName }
+										}
+									}
+								</div>
+							</div>
+						}
+						{{
+							var (
+								bi  = buildinfo.Get()
+								bt  = "unknown"
+								bts = "unknown"
+							)
+							if !bi.BuildTime.IsZero() {
+								bt = bi.BuildTime.Local().Format("2006-01-02 15:04:05 MST")
+								bts = bi.BuildTime.Format("2006-01-02 15:04:05 MST")
+							}
+						}}
+						<div class="space-y-4">
+							<div class="space-y-2 text-sm">
+								@table.Table() {
+									@table.Body() {
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutVersion) }
+											}
+											@table.Cell() {
+												@badge.Badge() {
+													{ bi.Version }
+												}
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutBuildTime) }
+											}
+											@table.Cell() {
+												@badge.Badge(badge.Props{Attributes: templ.Attributes{
+													"title": bts,
+												}}) {
+													{ bt }
+												}
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutGitReference) }
+											}
+											@table.Cell() {
+												<a href={ "https://git.sr.ht/~icikowski/account-center/refs/" + bi.GitReference } target="_blank" class="block max-w-full text-inherit no-underline hover:underline">
+													@badge.Badge(badge.Props{Class: "w-full justify-start whitespace-normal break-all sm:w-fit sm:justify-center"}) {
+														<code class="whitespace-normal break-all">{ bi.GitReference }</code>
+													}
+												</a>
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutGoVersion) }
+											}
+											@table.Cell() {
+												@badge.Badge() {
+													{ bi.GoVersion }
+												}
+											}
+										}
+										@table.Row() {
+											@table.Head() {
+												{ i18n.T(ctx, i18n.KeyAboutArchitecture) }
+											}
+											@table.Cell() {
+												@badge.Badge() {
+													{ bi.Architecture }
+												}
+											}
+										}
+									}
+								}
+							</div>
+							<div class="flex flex-wrap items-center justify-center gap-2">
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkProject)},
+									Href:       "https://sr.ht/~icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.FolderGit(icon.Props{Class: "size-4"})
+								}
+								@separator.Separator(separator.Props{
+									Orientation: separator.OrientationVertical,
+									Class:       "mx-2",
+								})
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkRepository)},
+									Href:       "https://git.sr.ht/~icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.GitBranch(icon.Props{Class: "size-4"})
+								}
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkMirror)},
+									Href:       "https://github.com/Icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.GitFork(icon.Props{Class: "size-4"})
+								}
+								@separator.Separator(separator.Props{
+									Orientation: separator.OrientationVertical,
+									Class:       "mx-2",
+								})
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkMailingLists)},
+									Href:       "https://sr.ht/~icikowski/account-center/lists",
+									Target:     "_blank",
+								}) {
+									@icon.Mails(icon.Props{Class: "size-4"})
+								}
+								@button.Button(button.Props{
+									Size:       button.SizeIcon,
+									Variant:    button.VariantSecondary,
+									Attributes: templ.Attributes{"title": i18n.T(ctx, i18n.KeyAboutLinkIssueTracker)},
+									Href:       "https://todo.sr.ht/~icikowski/account-center",
+									Target:     "_blank",
+								}) {
+									@icon.Bug(icon.Props{Class: "size-4"})
+								}
+							</div>
+						</div>
+					}
+				}
+			}
+		}
+	}
+	@sidebar.Content() {
+		@sidebar.Group() {
+			@sidebar.GroupLabel() {
+				{ i18n.T(ctx, i18n.KeyLabelResources) }
+			}
+			@sidebar.Menu() {
+				@sidebar.MenuItem() {
+					@sidebar.MenuButton(sidebar.MenuButtonProps{
+						Href:     NavigationCatalog.URL,
+						Tooltip:  i18n.T(ctx, NavigationCatalog.Key),
+						IsActive: NavigationCatalog.IsActive(nav),
+					}) {
+						@icon.LayoutDashboard(icon.Props{Class: "size-4"})
+						<span>{ i18n.T(ctx, NavigationCatalog.Key) }</span>
+						if bd.Counters.Services > 0 {
+							@sidebar.MenuBadge() {
+								{ bd.Counters.Services }
+							}
+						}
+					}
+				}
+				@sidebar.MenuItem() {
+					@sidebar.MenuButton(sidebar.MenuButtonProps{
+						Href:     NavigationKnowledgeBase.URL,
+						Tooltip:  i18n.T(ctx, NavigationKnowledgeBase.Key),
+						IsActive: NavigationKnowledgeBase.IsActive(nav),
+					}) {
+						@icon.NotebookTabs(icon.Props{Class: "size-4"})
+						<span>{ i18n.T(ctx, NavigationKnowledgeBase.Key) }</span>
+						if bd.Counters.KnowledgeBaseArticles > 0 {
+							@sidebar.MenuBadge() {
+								{ bd.Counters.KnowledgeBaseArticles }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	{{
+		var (
+			userFullName = i18n.T(ctx, i18n.KeyAuthUnknownUser)
+			userEmail    = i18n.T(ctx, i18n.KeyAuthNoEmail)
+		)
+
+		if bd.User != nil {
+			if strings.TrimSpace(bd.User.FullName) != "" {
+				userFullName = bd.User.FullName
+			}
+			if strings.TrimSpace(bd.User.Email) != "" {
+				userEmail = bd.User.Email
+			}
+		}
+	}}
+	@sidebar.Footer() {
+		@sidebar.Menu() {
+			@sidebar.MenuItem() {
+				@dropdown.Dropdown() {
+					@dropdown.Trigger() {
+						@sidebar.MenuButton(sidebar.MenuButtonProps{
+							Size: sidebar.MenuButtonSizeLg,
+						}) {
+							@avatar.Avatar(avatar.Props{Class: "size-8 rounded-lg"}) {
+								@avatar.Image(avatar.ImageProps{
+									Src: bd.User.ProfilePictureURL(),
+								})
+							}
+							<div class="grid flex-1 text-left text-sm leading-tight">
+								<span class="truncate font-medium">{ userFullName }</span>
+								<span class="truncate text-xs">{ userEmail }</span>
+							</div>
+							@icon.ChevronsUpDown(icon.Props{Class: "ml-auto size-4"})
+						}
+					}
+					@dropdown.Content(dropdown.ContentProps{
+						Class:     "w-56",
+						Placement: dropdown.PlacementTopStart,
+					}) {
+						@dropdown.Label() {
+							{ userFullName }
+						}
+						@dropdown.Separator()
+						@dropdown.Group() {
+							@collapsible.Collapsible() {
+								@collapsible.Trigger() {
+									@dropdown.Item(dropdown.ItemProps{PreventClose: true}) {
+										<span class="flex items-center justify-between w-full">
+											<span class="flex items-center w-full">
+												@icon.SwatchBook(icon.Props{Class: "size-4 mr-2"})
+												{ i18n.T(ctx, i18n.KeyGeneralTheme) }
+											</span>
+											@icon.ChevronsUpDown(icon.Props{Class: "size-4"})
+										</span>
+									}
+								}
+								@collapsible.Content() {
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": templ.JSFuncCall("setTheme", "light"),
+										},
+									}) {
+										<span class="flex items-center">
+											@icon.Sun(icon.Props{Class: "size-4 mr-2"})
+											{ i18n.T(ctx, i18n.KeyThemeLight) }
+										</span>
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": templ.JSFuncCall("setTheme", "dark"),
+										},
+									}) {
+										<span class="flex items-center">
+											@icon.Moon(icon.Props{Class: "size-4 mr-2"})
+											{ i18n.T(ctx, i18n.KeyThemeDark) }
+										</span>
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": templ.JSFuncCall("setTheme", "auto"),
+										},
+									}) {
+										<span class="flex items-center">
+											@icon.SunMoon(icon.Props{Class: "size-4 mr-2"})
+											{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+										</span>
+									}
+								}
+							}
+						}
+						@dropdown.Separator()
+						@dropdown.Group() {
+							@collapsible.Collapsible() {
+								@collapsible.Trigger() {
+									@dropdown.Item(dropdown.ItemProps{PreventClose: true}) {
+										<span class="flex items-center justify-between w-full">
+											<span class="flex items-center w-full">
+												@icon.Globe(icon.Props{Class: "size-4 mr-2"})
+												{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
+											</span>
+											@icon.ChevronsUpDown(icon.Props{Class: "size-4"})
+										</span>
+									}
+								}
+								@collapsible.Content() {
+									for _, lang := range i18n.AvailableLanguages() {
+										@dropdown.Item(dropdown.ItemProps{
+											Attributes: templ.Attributes{
+												"onclick": templ.JSFuncCall("setLanguage", lang.Code),
+											},
+										}) {
+											<span class="flex items-center">
+												{ i18n.T(ctx, lang.Name) }
+											</span>
+										}
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Attributes: templ.Attributes{
+											"onclick": templ.JSFuncCall("setLanguage", ""),
+										},
+									}) {
+										<span class="flex items-center">
+											{ i18n.T(ctx, i18n.KeyGeneralSystem) }
+										</span>
+									}
+								}
+							}
+						}
+						if bd.ShowBrowserExtensions {
+							@dropdown.Separator()
+							@dropdown.Group() {
+								@collapsible.Collapsible() {
+									@collapsible.Trigger() {
+										@dropdown.Item(dropdown.ItemProps{PreventClose: true}) {
+											<span class="flex items-center justify-between w-full">
+												<span class="flex items-center w-full">
+													@icon.Puzzle(icon.Props{Class: "size-4 mr-2"})
+													{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensions) }
+												</span>
+												@icon.ChevronsUpDown(icon.Props{Class: "size-4"})
+											</span>
+										}
+									}
+									@collapsible.Content() {
+										@dropdown.Item(dropdown.ItemProps{
+											Href:   "https://addons.mozilla.org/firefox/addon/account-center/",
+											Target: "_blank",
+										}) {
+											<span class="flex items-center">
+												{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsFirefox) }
+											</span>
+										}
+										@dropdown.Item(dropdown.ItemProps{
+											Href:   "https://chromewebstore.google.com/detail/ngjhhagcpndonjabkbdmgfgephejmkgi/",
+											Target: "_blank",
+										}) {
+											<span class="flex items-center">
+												{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsChrome) }
+											</span>
+										}
+									}
+								}
+							}
+						}
+						@dropdown.Separator()
+						if bd.User != nil {
+							@dropdown.Item(dropdown.ItemProps{
+								PreventClose: true,
+								Attributes: templ.Attributes{
+									"type": "submit",
+									"form": "refresh-form",
+								},
+							}) {
+								<span class="flex items-center">
+									@icon.CloudSync(icon.Props{Class: "size-4 mr-2"})
+									{ i18n.T(ctx, i18n.KeyAuthRefresh) }
+								</span>
+							}
+							@dropdown.Item(dropdown.ItemProps{
+								PreventClose: true,
+								Attributes: templ.Attributes{
+									"type": "submit",
+									"form": "logout-form",
+								},
+							}) {
+								<span class="flex items-center">
+									@icon.LogOut(icon.Props{Class: "size-4 mr-2"})
+									{ i18n.T(ctx, i18n.KeyAuthLogout) }
+								</span>
+							}
+						} else {
+							@dropdown.Item(dropdown.ItemProps{
+								Href: "/login",
+							}) {
+								<span class="flex items-center">
+									@icon.LogIn(icon.Props{Class: "size-4 mr-2"})
+									{ i18n.T(ctx, i18n.KeyAuthLogin) }
+								</span>
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+templ sidebarBreadcrumbs(nav *NavigationItem) {
+	{{
+		var path []*NavigationItem
+		if nav != nil && nav.Parent != nil {
+			path = nav.Parent.Breadcrumbs()
+		}
+	}}
+	<div class="md:hidden">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
+				@breadcrumb.Item() {
+					@breadcrumb.Link(breadcrumb.LinkProps{
+						Href: "/",
+					}) {
+						@icon.House(icon.Props{Class: "size-4"})
+					}
+				}
+				if nav != nil {
+					if len(path) != 0 {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@dropdown.Dropdown() {
+								@dropdown.Trigger() {
+									@breadcrumb.Link() {
+										@icon.Ellipsis(icon.Props{Class: "size-4"})
+									}
+								}
+								@dropdown.Content(dropdown.ContentProps{
+									// Class: "w-56",
+								}) {
+									for _, item := range path {
+										@dropdown.Item(dropdown.ItemProps{
+											Href: item.FullURL(),
+										}) {
+											{ i18n.T(ctx, item.Key) }
+										}
+									}
+									@dropdown.Item(dropdown.ItemProps{
+										Href:     nav.FullURL(),
+										Disabled: true,
+									}) {
+										{ i18n.T(ctx, nav.Key) }
+									}
+								}
+							}
+						}
+					} else {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@breadcrumb.Page(breadcrumb.ItemProps{Current: true}) {
+								{ i18n.T(ctx, nav.Key) }
+							}
+						}
+					}
+				}
+			}
+		}
+	</div>
+	<div class="hidden md:block">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
+				@breadcrumb.Item() {
+					@breadcrumb.Link(breadcrumb.LinkProps{
+						Href: "/",
+					}) {
+						@icon.House(icon.Props{Class: "size-4"})
+					}
+				}
+				if nav != nil {
+					for _, item := range path {
+						@breadcrumb.Separator()
+						@breadcrumb.Item() {
+							@breadcrumb.Link(breadcrumb.LinkProps{
+								Href: item.FullURL(),
+							}) {
+								{ i18n.T(ctx, item.Key) }
+							}
+						}
+					}
+					@breadcrumb.Separator()
+					@breadcrumb.Item() {
+						@breadcrumb.Page(breadcrumb.ItemProps{Current: true}) {
+							{ i18n.T(ctx, nav.Key) }
+						}
+					}
+				}
+			}
+		}
+	</div>
+}
