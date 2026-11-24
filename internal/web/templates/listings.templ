@@ -42,7 +42,7 @@ templ catalogServiceTile(svc model.EffectiveService) {
 					}
 				}
 				if svc.Icon != nil {
-					@card.Action() {
+					@card.Action(card.ActionProps{Class: "self-center"}) {
 						@avatar.Avatar(avatar.Props{Class: "overflow-hidden rounded-lg after:hidden"}) {
 							@avatar.Image(avatar.ImageProps{
 								Src:   svc.Icon.String(),
