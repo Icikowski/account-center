@@ -7,8 +7,6 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/web/assets"
 	"git.sr.ht/~icikowski/account-center/internal/web/components"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/breadcrumb"
-	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
-	"git.sr.ht/~icikowski/account-center/internal/web/components/dropdownmenu"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/separator"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/sidebar"
@@ -90,73 +88,29 @@ templ breadcrumbs(nav *NavigationItem) {
 			path = nav.Parent.Breadcrumbs()
 		}
 	}}
-	<div class="md:hidden">
-		@breadcrumb.Breadcrumb() {
-			@breadcrumb.List() {
-				@breadcrumb.Item() {
-					@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
-						@icon.House(icon.Props{Class: "size-4"})
+	@breadcrumb.Breadcrumb(breadcrumb.Props{Class: "min-w-0 flex-1"}) {
+		@breadcrumb.List(breadcrumb.ListProps{Class: "min-w-0 flex-nowrap"}) {
+			@breadcrumb.Item(breadcrumb.ItemProps{Class: "shrink-0"}) {
+				@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
+					@icon.House(icon.Props{Class: "size-4"})
+				}
+			}
+			if nav != nil {
+				for _, item := range path {
+					@breadcrumb.Separator(breadcrumb.SeparatorProps{Class: "shrink-0"})
+					@breadcrumb.Item(breadcrumb.ItemProps{Class: "shrink-0"}) {
+						@breadcrumb.Link(breadcrumb.LinkProps{Href: item.FullURL()}) {
+							{ i18n.T(ctx, item.Key) }
+						}
 					}
 				}
-				if nav != nil {
-					@breadcrumb.Separator()
-					@breadcrumb.Item() {
-						if len(path) != 0 {
-							@dropdownmenu.DropdownMenu(dropdownmenu.Props{ID: "app-breadcrumbs-menu"}) {
-								@button.Button(button.Props{
-									Size:       button.SizeIconSm,
-									Variant:    button.VariantGhost,
-									Class:      "size-7",
-									Attributes: dropdownmenu.Trigger(ctx),
-								}) {
-									@icon.Ellipsis(icon.Props{Class: "size-4"})
-								}
-								@dropdownmenu.Content(dropdownmenu.ContentProps{Align: dropdownmenu.AlignStart}) {
-									for _, item := range path {
-										@dropdownmenu.Item(dropdownmenu.ItemProps{Href: item.FullURL()}) {
-											{ i18n.T(ctx, item.Key) }
-										}
-									}
-									@dropdownmenu.Item(dropdownmenu.ItemProps{Disabled: true}) {
-										{ i18n.T(ctx, nav.Key) }
-									}
-								}
-							}
-						} else {
-							@breadcrumb.Page() {
-								{ i18n.T(ctx, nav.Key) }
-							}
-						}
+				@breadcrumb.Separator(breadcrumb.SeparatorProps{Class: "shrink-0"})
+				@breadcrumb.Item(breadcrumb.ItemProps{Class: "min-w-0 flex-1"}) {
+					@breadcrumb.Page(breadcrumb.ItemProps{Class: "block truncate"}) {
+						{ i18n.T(ctx, nav.Key) }
 					}
 				}
 			}
 		}
-	</div>
-	<div class="hidden md:block">
-		@breadcrumb.Breadcrumb() {
-			@breadcrumb.List() {
-				@breadcrumb.Item() {
-					@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
-						@icon.House(icon.Props{Class: "size-4"})
-					}
-				}
-				if nav != nil {
-					for _, item := range path {
-						@breadcrumb.Separator()
-						@breadcrumb.Item() {
-							@breadcrumb.Link(breadcrumb.LinkProps{Href: item.FullURL()}) {
-								{ i18n.T(ctx, item.Key) }
-							}
-						}
-					}
-					@breadcrumb.Separator()
-					@breadcrumb.Item() {
-						@breadcrumb.Page() {
-							{ i18n.T(ctx, nav.Key) }
-						}
-					}
-				}
-			}
-		}
-	</div>
+	}
 }
