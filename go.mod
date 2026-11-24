@@ -6,7 +6,6 @@ tool (
 	github.com/a-h/templ/cmd/templ
 	github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ
 	github.com/nicksnyder/go-i18n/v2/goi18n
-	github.com/templui/templui/cmd/templui
 )
 
 require (
@@ -20,7 +19,6 @@ require (
 	github.com/nicksnyder/go-i18n/v2 v2.7.0
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/rs/zerolog v1.35.1
-	github.com/templui/templui v1.13.4
 	github.com/tiendc/go-deepcopy v1.7.2
 	github.com/yuin/goldmark v1.8.7
 	go.yaml.in/yaml/v3 v3.0.6

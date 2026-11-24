@@ -88,6 +88,7 @@ task build
 task run
 task test
 task lint
+task deps   # update Go deps, shadcn-templ CLI/components, and the JS bundle
 ```
 
 For live development:
@@ -97,6 +98,8 @@ task dev
 ```
 
 ### Setup
+
+After cloning, run `task generate` once: generated `templ code`, the JS bundle, and CSS are intentionally not committed. Use `task deps` only when updating dependencies or re-vendoring UI components.
 
 1. Start from `.env.example` or `docs/environment-variables.md`.
 2. For local development, place the required `AC_*` variables in `.env`; the committed `.envrc` loads it with direnv.

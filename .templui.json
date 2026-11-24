@@ -1,7 +1,0 @@
-{
-  "componentsDir": "internal/web/legacy/components",
-  "utilsDir": "internal/web/legacy/utils",
-  "moduleName": "git.sr.ht/~icikowski/account-center",
-  "jsDir": "internal/web/assets/js",
-  "jsPublicPath": "/assets/js"
-}

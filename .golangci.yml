@@ -25,7 +25,6 @@ formatters:
       - "(.+)_templ.go"
       - "internal/web/components"
       - "internal/web/utils"
-      - "internal/web/legacy"
 linters:
   enable:
     - asasalint
@@ -129,5 +128,4 @@ linters:
     paths:
       - internal/web/components
       - internal/web/utils
-      - internal/web/legacy
       - (.+)_templ.go
