@@ -150,6 +150,7 @@ templ navUser(bd BaseData) {
 	{{
 		userFullName := i18n.T(ctx, i18n.KeyAuthUnknownUser)
 		userEmail := i18n.T(ctx, i18n.KeyAuthNoEmail)
+		currentLanguage := i18n.T(ctx, i18n.KeyLanguageCode)
 		if bd.User != nil {
 			if strings.TrimSpace(bd.User.FullName) != "" {
 				userFullName = bd.User.FullName
@@ -185,83 +186,102 @@ templ navUser(bd BaseData) {
 					@icon.ChevronsUpDown(icon.Props{Class: "ml-auto size-4"})
 				}
 				@dropdownmenu.Content(dropdownmenu.ContentProps{
-					Class:      "min-w-56",
+					Class:      "min-w-64",
 					Side:       dropdownmenu.SideRight,
 					Align:      dropdownmenu.AlignEnd,
 					SideOffset: 4,
 				}) {
-					@dropdownmenu.Sub() {
-						@dropdownmenu.SubTrigger() {
-							@icon.Globe()
-							{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
+					@dropdownmenu.Group() {
+						@dropdownmenu.Label() {
+							{ i18n.T(ctx, i18n.KeyGeneralPreferences) }
 						}
-						@dropdownmenu.SubContent() {
-							@dropdownmenu.Group() {
-								for _, lang := range i18n.AvailableLanguages() {
-									@dropdownmenu.Item(dropdownmenu.ItemProps{
-										Attributes: templ.Attributes{
-											"onclick": templ.JSFuncCall("setLanguage", lang.Code),
-										},
-									}) {
-										{ i18n.T(ctx, lang.Name) }
-									}
-								}
-								@dropdownmenu.Item(dropdownmenu.ItemProps{
-									Attributes: templ.Attributes{
-										"onclick": templ.JSFuncCall("setLanguage", ""),
-									},
-								}) {
-									{ i18n.T(ctx, i18n.KeyGeneralSystem) }
-								}
-							}
-						}
-					}
-					if bd.ShowBrowserExtensions {
 						@dropdownmenu.Sub() {
 							@dropdownmenu.SubTrigger() {
-								@icon.Puzzle()
-								{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensions) }
+								@icon.Globe()
+								{ i18n.T(ctx, i18n.KeyGeneralLanguage) }
 							}
 							@dropdownmenu.SubContent() {
+								@dropdownmenu.RadioGroup(dropdownmenu.RadioGroupProps{DefaultValue: currentLanguage}) {
+									for _, lang := range i18n.AvailableLanguages() {
+										@dropdownmenu.RadioItem(dropdownmenu.RadioItemProps{
+											Value: lang.Code,
+											Attributes: templ.Attributes{
+												"onclick": templ.JSFuncCall("setLanguage", lang.Code),
+											},
+										}) {
+											{ i18n.T(ctx, lang.Name) }
+										}
+									}
+								}
+								@dropdownmenu.Separator()
 								@dropdownmenu.Group() {
 									@dropdownmenu.Item(dropdownmenu.ItemProps{
-										Href:   "https://addons.mozilla.org/firefox/addon/account-center/",
-										Target: "_blank",
+										Attributes: templ.Attributes{
+											"onclick": templ.JSFuncCall("setLanguage", ""),
+										},
 									}) {
-										{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsFirefox) }
+										{ i18n.T(ctx, i18n.KeyGeneralSystem) }
 									}
-									@dropdownmenu.Item(dropdownmenu.ItemProps{
-										Href:   "https://chromewebstore.google.com/detail/ngjhhagcpndonjabkbdmgfgephejmkgi/",
-										Target: "_blank",
-									}) {
-										{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsChrome) }
+								}
+							}
+						}
+						if bd.ShowBrowserExtensions {
+							@dropdownmenu.Sub() {
+								@dropdownmenu.SubTrigger() {
+									@icon.Puzzle()
+									{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensions) }
+								}
+								@dropdownmenu.SubContent() {
+									@dropdownmenu.Group() {
+										@dropdownmenu.Item(dropdownmenu.ItemProps{
+											Href:   "https://addons.mozilla.org/firefox/addon/account-center/",
+											Target: "_blank",
+										}) {
+											@firefoxIcon()
+											{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsFirefox) }
+											@icon.ExternalLink(icon.Props{Class: "ml-auto size-3"})
+										}
+										@dropdownmenu.Item(dropdownmenu.ItemProps{
+											Href:   "https://chromewebstore.google.com/detail/ngjhhagcpndonjabkbdmgfgephejmkgi/",
+											Target: "_blank",
+										}) {
+											@chromeIcon()
+											{ i18n.T(ctx, i18n.KeyGeneralBrowserExtensionsChrome) }
+											@icon.ExternalLink(icon.Props{Class: "ml-auto size-3"})
+										}
 									}
 								}
 							}
 						}
 					}
 					@dropdownmenu.Separator()
-					if bd.User != nil {
-						@dropdownmenu.Item(dropdownmenu.ItemProps{
-							Attributes: templ.Attributes{
-								"onclick": templ.JSFuncCall("submitForm", "refresh-form"),
-							},
-						}) {
-							@icon.CloudSync()
-							{ i18n.T(ctx, i18n.KeyAuthRefresh) }
+					@dropdownmenu.Group() {
+						@dropdownmenu.Label() {
+							{ i18n.T(ctx, i18n.KeyGeneralSession) }
 						}
-						@dropdownmenu.Item(dropdownmenu.ItemProps{
-							Attributes: templ.Attributes{
-								"onclick": templ.JSFuncCall("submitForm", "logout-form"),
-							},
-						}) {
-							@icon.LogOut()
-							{ i18n.T(ctx, i18n.KeyAuthLogout) }
-						}
-					} else {
-						@dropdownmenu.Item(dropdownmenu.ItemProps{Href: consts.RouteLogin}) {
-							@icon.LogIn()
-							{ i18n.T(ctx, i18n.KeyAuthLogin) }
+						if bd.User != nil {
+							@dropdownmenu.Item(dropdownmenu.ItemProps{
+								Attributes: templ.Attributes{
+									"onclick": templ.JSFuncCall("submitForm", "refresh-form"),
+								},
+							}) {
+								@icon.CloudSync()
+								{ i18n.T(ctx, i18n.KeyAuthRefresh) }
+							}
+							@dropdownmenu.Item(dropdownmenu.ItemProps{
+								Variant: dropdownmenu.ItemVariantDestructive,
+								Attributes: templ.Attributes{
+									"onclick": templ.JSFuncCall("submitForm", "logout-form"),
+								},
+							}) {
+								@icon.LogOut()
+								{ i18n.T(ctx, i18n.KeyAuthLogout) }
+							}
+						} else {
+							@dropdownmenu.Item(dropdownmenu.ItemProps{Href: consts.RouteLogin}) {
+								@icon.LogIn()
+								{ i18n.T(ctx, i18n.KeyAuthLogin) }
+							}
 						}
 					}
 				}

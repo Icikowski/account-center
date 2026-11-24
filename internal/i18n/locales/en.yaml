@@ -16,6 +16,10 @@
   other: Firefox
 - id: general.browser_extensions.chrome
   other: Chrome
+- id: general.preferences
+  other: Preferences
+- id: general.session
+  other: Session
 - id: welcome.message
   other: Welcome to Account Center! Please log in to access your services and resources.
 - id: about.version

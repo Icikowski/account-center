@@ -19,6 +19,8 @@ const (
 	KeyGeneralBrowserExtensions        Key = "general.browser_extensions"
 	KeyGeneralBrowserExtensionsFirefox Key = "general.browser_extensions.firefox"
 	KeyGeneralBrowserExtensionsChrome  Key = "general.browser_extensions.chrome"
+	KeyGeneralPreferences              Key = "general.preferences"
+	KeyGeneralSession                  Key = "general.session"
 
 	KeyWelcomeMessage Key = "welcome.message"
 

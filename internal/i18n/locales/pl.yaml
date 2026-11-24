@@ -16,6 +16,10 @@
   other: Firefox
 - id: general.browser_extensions.chrome
   other: Chrome
+- id: general.preferences
+  other: Preferencje
+- id: general.session
+  other: Sesja
 - id: welcome.message
   other: Witamy w Centrum kont! Zaloguj się, aby uzyskać dostęp do swoich usług i zasobów.
 - id: about.version
