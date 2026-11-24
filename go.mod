@@ -10,8 +10,8 @@ tool (
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3
-	github.com/a-h/templ v0.3.1100
-	github.com/bmatcuk/doublestar/v4 v4.10.4
+	github.com/a-h/templ v0.3.1118
+	github.com/bmatcuk/doublestar/v4 v4.10.7
 	github.com/caarlos0/env/v11 v11.4.2
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/fsnotify/fsnotify v1.10.1
@@ -22,7 +22,7 @@ require (
 	github.com/tiendc/go-deepcopy v1.7.2
 	github.com/yuin/goldmark v1.8.7
 	go.yaml.in/yaml/v3 v3.0.6
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 	golang.org/x/oauth2 v0.38.0
 	golang.org/x/sync v0.25.0
 	golang.org/x/text v0.44.0
@@ -31,8 +31,8 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
-	github.com/andybalholm/brotli v1.2.7 // indirect
+	github.com/a-h/parse v0.0.42 // indirect
+	github.com/andybalholm/brotli v1.3.0 // indirect
 	github.com/axadrn/shadcn-templ/v2 v2.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
-	golang.org/x/mod v0.42.0 // indirect
+	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
-	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/tools v0.53.0 // indirect
 )
