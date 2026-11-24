@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/web/components/badge"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/button"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/empty"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
 	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
 )
@@ -101,20 +102,19 @@ templ knowledgeBaseArticleTile(article model.KnowledgeBaseListingArticle) {
 templ Catalog(services []model.EffectiveService) {
 	@layouts.Page(i18n.T(ctx, i18n.KeySectionCatalog), layouts.NavigationCatalog) {
 		if len(services) == 0 {
-			<div class="w-full">
-				@card.Card() {
-					@card.Header() {
-						@card.Title() {
-							{ i18n.T(ctx, i18n.KeyCatalogNoServices) }
-						}
+			@empty.Empty(empty.Props{Class: "border"}) {
+				@empty.Header() {
+					@empty.Media(empty.MediaProps{Variant: empty.MediaVariantIcon}) {
+						@icon.LayoutDashboard()
 					}
-					@card.Content() {
-						<p>
-							{ i18n.T(ctx, i18n.KeyCatalogNoServicesMessage) }
-						</p>
+					@empty.Title() {
+						{ i18n.T(ctx, i18n.KeyCatalogNoServices) }
+					}
+					@empty.Description() {
+						{ i18n.T(ctx, i18n.KeyCatalogNoServicesMessage) }
 					}
 				}
-			</div>
+			}
 		} else {
 			@tileGrid(services, catalogServiceTile)
 		}
@@ -124,20 +124,19 @@ templ Catalog(services []model.EffectiveService) {
 templ KnowledgeBase(articles []model.KnowledgeBaseListingArticle) {
 	@layouts.Page(i18n.T(ctx, i18n.KeySectionKnowledgeBase), layouts.NavigationKnowledgeBase) {
 		if len(articles) == 0 {
-			<div class="w-full">
-				@card.Card() {
-					@card.Header() {
-						@card.Title() {
-							{ i18n.T(ctx, i18n.KeyKnowledgeBaseNoArticles) }
-						}
+			@empty.Empty(empty.Props{Class: "border"}) {
+				@empty.Header() {
+					@empty.Media(empty.MediaProps{Variant: empty.MediaVariantIcon}) {
+						@icon.NotebookTabs()
 					}
-					@card.Content() {
-						<p>
-							{ i18n.T(ctx, i18n.KeyKnowledgeBaseNoArticlesMessage) }
-						</p>
+					@empty.Title() {
+						{ i18n.T(ctx, i18n.KeyKnowledgeBaseNoArticles) }
+					}
+					@empty.Description() {
+						{ i18n.T(ctx, i18n.KeyKnowledgeBaseNoArticlesMessage) }
 					}
 				}
-			</div>
+			}
 		} else {
 			@tileGrid(articles, knowledgeBaseArticleTile)
 		}

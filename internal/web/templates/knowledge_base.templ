@@ -6,6 +6,8 @@ import (
 	"git.sr.ht/~icikowski/account-center/internal/i18n"
 	"git.sr.ht/~icikowski/account-center/internal/model"
 	"git.sr.ht/~icikowski/account-center/internal/web/components/card"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/empty"
+	"git.sr.ht/~icikowski/account-center/internal/web/components/icon"
 	"git.sr.ht/~icikowski/account-center/internal/web/layouts"
 )
 
@@ -30,19 +32,18 @@ templ KnowledgeBaseArticle(article model.KnowledgeBaseArticle, body template.HTM
 
 templ KnowledgeBaseDisabled() {
 	@layouts.Page(i18n.T(ctx, i18n.KeySectionKnowledgeBase), layouts.NavigationKnowledgeBase) {
-		<div class="h-auto max-w-full">
-			@card.Card() {
-				@card.Header() {
-					@card.Title() {
-						{ i18n.T(ctx, i18n.KeyKnowledgeBaseDisabled) }
-					}
+		@empty.Empty(empty.Props{Class: "border"}) {
+			@empty.Header() {
+				@empty.Media(empty.MediaProps{Variant: empty.MediaVariantIcon}) {
+					@icon.BookX()
 				}
-				@card.Content() {
-					<p>
-						{ i18n.T(ctx, i18n.KeyKnowledgeBaseDisabledMessage) }
-					</p>
+				@empty.Title() {
+					{ i18n.T(ctx, i18n.KeyKnowledgeBaseDisabled) }
+				}
+				@empty.Description() {
+					{ i18n.T(ctx, i18n.KeyKnowledgeBaseDisabledMessage) }
 				}
 			}
-		</div>
+		}
 	}
 }
